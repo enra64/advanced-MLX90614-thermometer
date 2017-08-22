@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Bounce2.h>
+#include "../Bounce2/Bounce2.h"
 #include "ClickListener.hpp"
 
 #define LONG_CLICK_INTERVAL 500

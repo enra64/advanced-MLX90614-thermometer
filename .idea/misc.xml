@@ -5,5 +5,9 @@
     <sourceRoots>
       <file path="$PROJECT_DIR$/IR-Arduino" />
     </sourceRoots>
+    <libraryRoots>
+      <file path="$PROJECT_DIR$/Bounce2" />
+      <file path="$PROJECT_DIR$/U8g2" />
+    </libraryRoots>
   </component>
 </project>

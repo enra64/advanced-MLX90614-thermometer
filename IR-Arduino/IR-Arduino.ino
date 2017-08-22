@@ -7,9 +7,9 @@ void setup() {
   tempSensor.begin();
 }
 
-double getTemperature() {
+float getTemperature() {
   // readObjectAmbient? see adafruit...
-  return tempSensor.readObjectTempC();
+  return (float) tempSensor.readObjectTempC();
 }
 
 void loop() {

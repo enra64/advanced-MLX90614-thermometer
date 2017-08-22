@@ -1,0 +1,22 @@
+#ifndef IR_THERMO_PIN_CONFIG_H
+#define IR_THERMO_PIN_CONFIG_H
+
+#include <Arduino.h>
+
+// PINS
+#define SPI_CLOCK 13
+#define SPI_DATA 11
+#define SPI_CS_DISPLAY 10
+#define SPI_DC 9
+#define SPI_RESET 8
+#define SPI_CS_SD 7
+#define SDA A5
+#define SCL A4
+#define PISTOL_TRIGGER_PIN 6
+#define LASER_INPUT_PIN 5
+#define BACKGROUND_LIGHT_INPUT_PIN 4
+#define LASER_OUTPUT_PIN 3
+
+#define CONTINUOUS_MEASUREMENT_INTERVAL_SECS 5
+
+#endif //IR_THERMO_PIN_CONFIG_H
