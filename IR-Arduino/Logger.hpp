@@ -21,7 +21,7 @@ namespace LoggerTsTTT {
         sdout.precision(2);
 
         if (!sdout.is_open()) {
-            error("could not open logfile");
+            error("LOG_NO_OPEN");
             return false;
         }
 
@@ -65,7 +65,7 @@ namespace LoggerTsTTT {
         ifstream sdin(logFileName);
 
         if (!sdin.is_open())
-            error("could not open logfile");
+            error("LOG_NO_OPEN");
 
         char buffer[10];
         size_t entryCount = countEntries(sdin);
@@ -113,7 +113,7 @@ namespace LoggerTsTTT {
         // open input stream
         ifstream sdin(logFileName);
         if (!sdin.is_open()) {
-            error("could not open logfile");
+            error("LOG_NO_OPEN");
             return false;
         }
 
