@@ -10,7 +10,7 @@
 #include "ThermometerWrapper.h"
 #include "Logger.hpp"
 #include "Input.hpp"
-#include "ContinuousLoggingManager.h"
+#include "ContinuousLoggingManager.hpp"
 
 class AdvancedThermometerLogic {
 private:
@@ -29,7 +29,7 @@ private:
 public:
     AdvancedThermometerLogic() : displayIsDirty(false), laserEnabled(false), backgroundLightEnabled(false) {
         // initialize main classes
-        Logger::init();
+        LoggerTsTTT::init();
         display = new Display();
         thermometer = new Thermometer();
         scanManager = new ContinuousLoggingManager(thermometer);
@@ -53,7 +53,7 @@ public:
 
         if(displayIsDirty){
             displayIsDirty = false;
-            Logger::getLog(logBuffer, logLength);
+            LoggerTsTTT::getLog(logBuffer, logLength);
             display->update(logBuffer, logLength, scanManager->isEnabled(), backgroundLightEnabled, laserEnabled);
         }
     }
@@ -62,7 +62,7 @@ public:
     /// \param activated always false, here
     void onTriggerShortClick(bool activated) {
         if(!scanManager->isEnabled())
-            Logger::append(thermometer->getTemperature());
+            LoggerTsTTT::append(thermometer->getTemperature());
         else
             scanManager->disable();
         dirty();

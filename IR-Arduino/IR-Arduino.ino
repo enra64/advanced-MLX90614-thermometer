@@ -1,6 +1,6 @@
 /// This is the actual implementation that should run on the thermometer
 
-#include "AdvancedThermometerLogic.h"
+#include "AdvancedThermometerLogic.hpp"
 
 AdvancedThermometerLogic *thermometerLogic;
 Input *inputHandler;

@@ -6,7 +6,7 @@
 
 #include "my_config.h"
 
-namespace Logger {
+namespace LoggerTsTTT {
     SdFat SD;
     char logFileName[8];
 

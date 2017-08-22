@@ -6,7 +6,9 @@
       <file path="$PROJECT_DIR$/IR-Arduino" />
     </sourceRoots>
     <libraryRoots>
+      <file path="$PROJECT_DIR$/Adafruit_MLX90614" />
       <file path="$PROJECT_DIR$/Bounce2" />
+      <file path="$PROJECT_DIR$/SdFat" />
       <file path="$PROJECT_DIR$/U8g2" />
     </libraryRoots>
   </component>

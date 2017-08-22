@@ -1,4 +1,6 @@
+
 cmake_minimum_required(VERSION 3.8)
+add_definitions(-DYOU_ARE_IN_CMAKE)
 set(${CMAKE_PROJECT_NAME}_BOARD nano)
 set(${CMAKE_PROJECT_NAME}_PORT /dev/ttyUSB0)
 set(ARDUINO_CPU atmega328)
@@ -24,10 +26,4 @@ include_directories(
         Adafruit_MLX90614
 )
 
-link_directories(/home/arne/Arduino/libraries/SdFat/src /usr/share/arduino/hardware/arduino/avr/libraries )
-
-set(Wire_RECURSE true)
-set(SPI_RECURSE true)
-set(SdFat_RECURSE true)
-
-generate_arduino_firmware(IR-Arduino BOARD nano SKETCH IR-Arduino ARDLIBS SdFat Bounce2 U8g2 Adafruit_MLX90614)
+generate_arduino_firmware(IR-Arduino BOARD nano SKETCH IR-Arduino)
