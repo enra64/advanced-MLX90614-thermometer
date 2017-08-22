@@ -2,7 +2,7 @@
 #define IR_THERMO_THERMOMETERWRAPPER_H
 
 #include <Wire.h>
-#include <Adafruit_MLX90614/Adafruit_MLX90614.h>
+#include "Adafruit_MLX90614.h"
 
 class Thermometer {
     Adafruit_MLX90614* tempSensor;

@@ -16,17 +16,18 @@ set(
 #        HDRS ${ARDUINO_USER_LIB_PATH}/U8g2/src/U8g2lib.h NO_AUTOLIBS MANUAL)
 
 include_directories(
-        ${ARDUINO_USER_LIB_PATH}/Adafruit_MLX90614
-        SdFat
         /usr/share/arduino/hardware/arduino/avr/libraries/SPI/src
         /usr/share/arduino/hardware/arduino/avr/libraries/Wire/src
+        SdFat
+        Bounce2
+        U8g2
+        Adafruit_MLX90614
 )
 
-set(
-        Wire_RECURSE true
-        SPI_RECURSE true
-)
+link_directories(/home/arne/Arduino/libraries/SdFat/src /usr/share/arduino/hardware/arduino/avr/libraries )
 
-generate_arduino_firmware(IR-Arduino BOARD nano SKETCH IR-Arduino)
+set(Wire_RECURSE true)
+set(SPI_RECURSE true)
+set(SdFat_RECURSE true)
 
-target_include_directories(IR-Arduino PUBLIC SdFat Bounce2 U8g2 Wire Adafruit_MLX90614 SPI)
+generate_arduino_firmware(IR-Arduino BOARD nano SKETCH IR-Arduino ARDLIBS SdFat Bounce2 U8g2 Adafruit_MLX90614)
