@@ -1,38 +1,43 @@
+#ifndef IR_THERMO_INPUT_H
+#define IR_THERMO_INPUT_H
+
 #include "../Bounce2/Bounce2.h"
 #include "LongPressBouncer.hpp"
 #include "ClickListener.hpp"
 #include "my_config.h"
 
-Bounce laserBouncer = Bounce();
-Bounce backgroundBouncer = Bounce();
-LongPressBouncer triggerBouncer = LongPressBouncer(PISTOL_TRIGGER_PIN);
-ClickListener laserClickListener, backgroundClickListener;
+class Input {
+private:
+    Bounce laserBouncer, backgroundBouncer;
+    LongPressBouncer* triggerBouncer = nullptr;
+    ClickListener laserClickListener, backgroundClickListener;
 
-void init(
-        ClickListener shortTriggerListener,
-        ClickListener longTriggerListener,
-        ClickListener _laserClickListener,
-        ClickListener _backgroundLightClickListener) {
-    laserBouncer.attach(LASER_INPUT_PIN, INPUT_PULLUP);
-    laserClickListener = _laserClickListener;
+public:
+    Input(
+            ClickListener shortTriggerListener,
+            ClickListener longTriggerListener,
+            ClickListener _laserClickListener,
+            ClickListener _backgroundLightClickListener) :
+            laserClickListener(_laserClickListener),
+            backgroundClickListener(_backgroundLightClickListener){
 
-    backgroundBouncer.attach(BACKGROUND_LIGHT_INPUT_PIN, INPUT_PULLUP);
-    backgroundClickListener = _backgroundLightClickListener;
+        laserBouncer.attach(LASER_INPUT_PIN, INPUT_PULLUP);
+        backgroundBouncer.attach(BACKGROUND_LIGHT_INPUT_PIN, INPUT_PULLUP);
 
-    triggerBouncer.attachListeners(shortTriggerListener, longTriggerListener);
-}
+        triggerBouncer = new LongPressBouncer(PISTOL_TRIGGER_PIN, shortTriggerListener, longTriggerListener);
+    }
 
-void update() {
-    triggerBouncer.update();
-    laserBouncer.update();
-    backgroundBouncer.update();
+    void update() {
+        triggerBouncer->update();
+        laserBouncer.update();
+        backgroundBouncer.update();
 
-    // laser button updated?
-    if (laserBouncer.fell || laserBouncer.rose())
-        laserClickListener(laserBouncer.read());
+        // laser button updated?
+        if (laserBouncer.fell || laserBouncer.rose()) laserClickListener(laserBouncer.read());
 
-    // background button updated?
-    if (backgroundBouncer.fell || backgroundBouncer.rose())
-        backgroundClickListener(backgroundBouncer.read());
-}
+        // background button updated?
+        if (backgroundBouncer.fell || backgroundBouncer.rose()) backgroundClickListener(backgroundBouncer.read());
+    }
+};
 
+#endif// IR_THERMO_INPUT_H

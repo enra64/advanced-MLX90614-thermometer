@@ -1,3 +1,6 @@
+#ifndef IR_THERMO_LONGPRESSBOUNCER_H
+#define IR_THERMO_LONGPRESSBOUNCER_H
+
 #include <Arduino.h>
 #include "../Bounce2/Bounce2.h"
 #include "ClickListener.hpp"
@@ -6,14 +9,15 @@
 
 class LongPressBouncer {
 public:
-    explicit LongPressBouncer(int pin) {
+    explicit LongPressBouncer(
+            int pin,
+            ClickListener shortClickListener,
+            ClickListener longClickListener) :
+            lastActivation(0),
+            longClickListener(longClickListener),
+            shortClickListener(shortClickListener) {
         bouncer.attach(pin, INPUT_PULLUP);
         pressed = bouncer.read();
-    }
-
-    void attachListeners(ClickListener shortClickListener, ClickListener longClickListener) {
-        this->longClickListener = longClickListener;
-        this->shortClickListener = shortClickListener;
     }
 
     void update() {
@@ -40,9 +44,9 @@ public:
 
 private:
     bool pressed;
-    double lastActivation = 0;
-    ClickListener shortClickListener = nullptr;
-    ClickListener longClickListener = nullptr;
+    double lastActivation;
+    ClickListener shortClickListener, longClickListener;
     Bounce bouncer = Bounce();
 };
 
+#endif
