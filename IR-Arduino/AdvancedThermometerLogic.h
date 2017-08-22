@@ -10,22 +10,24 @@
 #include "Display.hpp"
 #include "ThermometerWrapper.h"
 #include "Logger.hpp"
+#include "ContinuousLoggingManager.h"
 
 class AdvancedThermometerLogic {
 private:
     Input *inputHandler = nullptr;
     Display *display = nullptr;
     Thermometer *thermometer = nullptr;
+    ContinuousLoggingManager* scanManager = nullptr;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "ClangTidyInspection" // wants to use default member initializers, don't trust that
-    bool displayIsDirty, laserEnabled, backgroundLightEnabled, continuousScanEnabled;
+    bool displayIsDirty, laserEnabled, backgroundLightEnabled;
 #pragma clang diagnostic pop
 
     float* logBuffer;
     size_t logLength;
 public:
-    AdvancedThermometerLogic() : displayIsDirty(false), laserEnabled(false), backgroundLightEnabled(false), continuousScanEnabled(false) {
+    AdvancedThermometerLogic() : displayIsDirty(false), laserEnabled(false), backgroundLightEnabled(false) {
         inputHandler = new Input(
                 this->onTriggerShortClick,
                 this->onTriggerLongClick,
@@ -37,6 +39,7 @@ public:
         Logger::init();
         display = new Display();
         thermometer = new Thermometer();
+        scanManager = new ContinuousLoggingManager(thermometer);
 
         // create log buffer on heap
         logLength = display->getGraphHorizontalResolution();
@@ -53,10 +56,11 @@ public:
     void update() {
         inputHandler->update();
         Logger::getLog(logBuffer, logLength);
+        displayIsDirty |= scanManager->update();
 
         if(displayIsDirty){
             clean();
-            display->update(logBuffer, logLength, continuousScanEnabled, backgroundLightEnabled, laserEnabled);
+            display->update(logBuffer, logLength, scanManager->isEnabled(), backgroundLightEnabled, laserEnabled);
         }
     }
 
@@ -70,17 +74,15 @@ private:
     }
 
     void onTriggerShortClick(bool activated) {
-        if(!continuousScanEnabled)
+        if(!scanManager->isEnabled())
             Logger::append(thermometer->getTemperature());
         else
-            //TODO: disable continuous scan
-            continuousScanEnabled = false;
+            scanManager->disable();
         dirty();
     }
 
     void onTriggerLongClick(bool activated) {
-        continuousScanEnabled = true;
-        //TODO: enable cont scan
+        scanManager->enable();
         dirty();
     }
 
