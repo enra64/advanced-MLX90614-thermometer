@@ -1,9 +1,7 @@
 #ifndef IR_THERMO_DISPLAY_H
 #define IR_THERMO_DISPLAY_H
 
-#include <Arduino.h>
-#include <float.h>
-#include <math.h>
+#define FLT_MAX     3.40282347E+38F
 #include "U8g2lib.h"
 #include "my_config.h"
 

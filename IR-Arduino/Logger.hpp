@@ -1,7 +1,6 @@
 #ifndef IR_THERMO_LOGGER_H
 #define IR_THERMO_LOGGER_H
 
-#include <avr/io.h>
 #include <SdFat.h>
 
 #include "my_config.h"
@@ -11,7 +10,7 @@ namespace LoggerTsTTT {
     char logFileName[8];
 
 #define SD_READ_BUFFER_SIZE 8 // 8 bytes should be enough for "XXX.XX,\0"
-#define error(s) Serial.println(F(s))
+#define error(s) Serial.println(s)
 
     /// Append a single data to the sd card. No buffering is done. Precision of 2.
     /// \param entry the value that is to be appended.

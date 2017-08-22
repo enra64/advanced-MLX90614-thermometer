@@ -10,8 +10,6 @@
 #define SPI_DC 9
 #define SPI_RESET 8
 #define SPI_CS_SD 7
-#define SDA A5
-#define SCL A4
 #define PISTOL_TRIGGER_PIN 6
 #define LASER_INPUT_PIN 5
 #define BACKGROUND_LIGHT_INPUT_PIN 4
