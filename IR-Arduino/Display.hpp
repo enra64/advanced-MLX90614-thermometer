@@ -22,7 +22,7 @@ private: // constants
     static const uint8_t GRAPH_LEFT_START = GRAPH_X + GRAPH_LEFT_MARGIN;
 
 private:
-    U8G2_PCD8544_84X48_1_4W_SW_SPI *display;
+    U8G2_PCD8544_84X48_1_4W_HW_SPI *display;
 
     void renderGraph(float *input, uint32_t count, float max, float min) {
         display->setFont(u8g2_font_victoriamedium8_8n);// 7 pixels high
@@ -115,7 +115,7 @@ public:
     }
 
     Display() {
-        display = new U8G2_PCD8544_84X48_1_4W_SW_SPI(U8G2_R2, SPI_CLOCK, SPI_DATA, SPI_CS_DISPLAY, SPI_DC, SPI_RESET);
+        display = new U8G2_PCD8544_84X48_1_4W_HW_SPI(U8G2_R2, SPI_CS_DISPLAY, SPI_DC, SPI_RESET);
         display->begin();
         display->enableUTF8Print();
     }
