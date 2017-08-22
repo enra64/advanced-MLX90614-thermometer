@@ -1,7 +1,7 @@
 #ifndef IR_THERMO_INPUT_H
 #define IR_THERMO_INPUT_H
 
-#include "../Bounce2/Bounce2.h"
+#include "Bounce2.h"
 #include "LongPressBouncer.hpp"
 #include "ClickListener.hpp"
 #include "my_config.h"
@@ -9,7 +9,7 @@
 class Input {
 private:
     Bounce laserBouncer, backgroundBouncer;
-    LongPressBouncer* triggerBouncer = nullptr;
+    LongPressBouncer *triggerBouncer = nullptr;
     ClickListener laserClickListener, backgroundClickListener;
 
 public:
@@ -19,7 +19,8 @@ public:
             ClickListener _laserClickListener,
             ClickListener _backgroundLightClickListener) :
             laserClickListener(_laserClickListener),
-            backgroundClickListener(_backgroundLightClickListener){
+            backgroundClickListener(_backgroundLightClickListener)
+    {
 
         laserBouncer.attach(LASER_INPUT_PIN, INPUT_PULLUP);
         backgroundBouncer.attach(BACKGROUND_LIGHT_INPUT_PIN, INPUT_PULLUP);
@@ -33,10 +34,10 @@ public:
         backgroundBouncer.update();
 
         // laser button updated?
-        if (laserBouncer.fell || laserBouncer.rose()) laserClickListener(laserBouncer.read());
+        if (laserBouncer.fell() || laserBouncer.rose()) laserClickListener(laserBouncer.read());
 
         // background button updated?
-        if (backgroundBouncer.fell || backgroundBouncer.rose()) backgroundClickListener(backgroundBouncer.read());
+        if (backgroundBouncer.fell() || backgroundBouncer.rose()) backgroundClickListener(backgroundBouncer.read());
     }
 };
 

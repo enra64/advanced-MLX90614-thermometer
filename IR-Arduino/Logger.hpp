@@ -2,7 +2,7 @@
 #define IR_THERMO_LOGGER_H
 
 #include <avr/io.h>
-#include "../SdFat/SdFat.h"
+#include <SdFat.h>
 
 #include "my_config.h"
 

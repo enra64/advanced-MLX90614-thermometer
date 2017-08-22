@@ -6,10 +6,10 @@
 #define IR_THERMO_ADVANCEDTHERMOMETERLOGIC_H
 
 
-#include "Input.hpp"
 #include "Display.hpp"
 #include "ThermometerWrapper.h"
 #include "Logger.hpp"
+#include "Input.hpp"
 #include "ContinuousLoggingManager.h"
 
 class AdvancedThermometerLogic {
@@ -28,13 +28,6 @@ private:
     size_t logLength;
 public:
     AdvancedThermometerLogic() : displayIsDirty(false), laserEnabled(false), backgroundLightEnabled(false) {
-        inputHandler = new Input(
-                this->onTriggerShortClick,
-                this->onTriggerLongClick,
-                this->onLaserToggled,
-                this->onBackgroundLightToggled
-        );
-
         // initialize main classes
         Logger::init();
         display = new Display();
@@ -53,26 +46,20 @@ public:
         digitalWrite(LASER_OUTPUT_PIN, HIGH);
     }
 
+    /// Update the input system and the continuous scanning manager. If necessary, update the display.
     void update() {
         inputHandler->update();
-        Logger::getLog(logBuffer, logLength);
         displayIsDirty |= scanManager->update();
 
         if(displayIsDirty){
-            clean();
+            displayIsDirty = false;
+            Logger::getLog(logBuffer, logLength);
             display->update(logBuffer, logLength, scanManager->isEnabled(), backgroundLightEnabled, laserEnabled);
         }
     }
 
-private:
-    void dirty() {
-        displayIsDirty = true;
-    }
-
-    void clean() {
-        displayIsDirty = false;
-    }
-
+    /// Called when the trigger was pressed for a short time.
+    /// \param activated always false, here
     void onTriggerShortClick(bool activated) {
         if(!scanManager->isEnabled())
             Logger::append(thermometer->getTemperature());
@@ -97,6 +84,11 @@ private:
         backgroundLightEnabled = activated;
         digitalWrite(BACKGROUND_LIGHT_OUTPUT_PIN, static_cast<uint8_t>(!activated));
         dirty();
+    }
+private:
+    /// Set the displayIsDirty flag to true, so that the next update call will update it
+    void dirty() {
+        displayIsDirty = true;
     }
 };
 

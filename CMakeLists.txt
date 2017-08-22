@@ -15,21 +15,18 @@ set(
 #generate_arduino_library(U8g2 BOARD nano SRCS ${ARDUINO_USER_LIB_PATH}/U8g2/src/U8g2lib.h
 #        HDRS ${ARDUINO_USER_LIB_PATH}/U8g2/src/U8g2lib.h NO_AUTOLIBS MANUAL)
 
-link_directories(
+include_directories(
         ${ARDUINO_USER_LIB_PATH}/Adafruit_MLX90614
-        ${ARDUINO_SYSTEM_LIB_PATH}/SPI
-        ${ARDUINO_SYSTEM_LIB_PATH}/Wire
-        Bounce2
-        U8g2
+        SdFat
+        /usr/share/arduino/hardware/arduino/avr/libraries/SPI/src
+        /usr/share/arduino/hardware/arduino/avr/libraries/Wire/src
 )
 
 set(
         Wire_RECURSE true
-        U8g2_RECURSE true
         SPI_RECURSE true
 )
 
-generate_arduino_firmware(
-        IR-Arduino
-        BOARD nano
-        SKETCH IR-Arduino)
+generate_arduino_firmware(IR-Arduino BOARD nano SKETCH IR-Arduino)
+
+target_include_directories(IR-Arduino PUBLIC SdFat Bounce2 U8g2 Wire Adafruit_MLX90614 SPI)

@@ -23,6 +23,8 @@ public:
     explicit ContinuousLoggingManager(Thermometer *thermometer) : thermometer(thermometer), enabled(false) {
     }
 
+    /// Scan if necessary
+    /// \return true if a scan was executed
     bool update() {
         if (enabled && (millis() - lastScan) > CONTINUOUS_MEASUREMENT_INTERVAL_SECS) {
             executeScan();

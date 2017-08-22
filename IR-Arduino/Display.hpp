@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <float.h>
 #include <math.h>
-#include "../U8g2/U8g2lib.h"
+#include "U8g2lib.h"
 #include "my_config.h"
 
 class Display {
