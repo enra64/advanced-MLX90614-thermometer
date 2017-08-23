@@ -18,11 +18,11 @@ set(
 #        HDRS ${ARDUINO_USER_LIB_PATH}/U8g2/src/U8g2lib.h NO_AUTOLIBS MANUAL)
 
 include_directories(
+        U8g2
         /usr/share/arduino/hardware/arduino/avr/libraries/SPI/src
         /usr/share/arduino/hardware/arduino/avr/libraries/Wire/src
         SdFat
         Bounce2
-        U8g2
         Adafruit_MLX90614
 )
 
