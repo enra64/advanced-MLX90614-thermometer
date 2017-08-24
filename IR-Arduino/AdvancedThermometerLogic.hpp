@@ -28,7 +28,7 @@ private:
 public:
     AdvancedThermometerLogic() : displayIsDirty(false), laserEnabled(false), backgroundLightEnabled(false) {
         // initialize main classes
-        LoggerTsTTT::init();
+        Logger::init();
         display = new Display();
         thermometer = new Thermometer();
         scanManager = new ContinuousLoggingManager(thermometer);
@@ -51,7 +51,7 @@ public:
 
         if(displayIsDirty){
             displayIsDirty = false;
-            LoggerTsTTT::getLog(logBuffer, logLength);
+            Logger::getLog(logBuffer, logLength);
             display->update(logBuffer, logLength, scanManager->isEnabled(), backgroundLightEnabled, laserEnabled);
         }
     }
@@ -60,7 +60,7 @@ public:
     /// \param activated always false, here
     void onTriggerShortClick(bool activated) {
         if(!scanManager->isEnabled())
-            LoggerTsTTT::append(thermometer->getTemperature());
+            Logger::append(thermometer->getTemperature());
         else
             scanManager->disable();
         dirty();
