@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.8)
 add_definitions(-DYOU_ARE_IN_CMAKE)
-set(${CMAKE_PROJECT_NAME}_BOARD nano)
+set(${CMAKE_PROJECT_NAME}_BOARD uno)
 set(${CMAKE_PROJECT_NAME}_PORT /dev/ttyUSB0)
 set(ARDUINO_CPU atmega328)
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/ArduinoToolchain.cmake)

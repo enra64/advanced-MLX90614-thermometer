@@ -14,7 +14,6 @@
 
 class AdvancedThermometerLogic {
 private:
-    Input *inputHandler = nullptr;
     Display *display = nullptr;
     Thermometer *thermometer = nullptr;
     ContinuousLoggingManager* scanManager = nullptr;
@@ -48,7 +47,6 @@ public:
 
     /// Update the input system and the continuous scanning manager. If necessary, update the display.
     void update() {
-        inputHandler->update();
         displayIsDirty |= scanManager->update();
 
         if(displayIsDirty){
