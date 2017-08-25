@@ -26,7 +26,6 @@ private: // constants
     static const uint8_t GRAPH_BOTTOM_MARGIN = 8, GRAPH_LEFT_MARGIN = 8;
     static const uint8_t GRAPH_LEFT_START = GRAPH_X + GRAPH_LEFT_MARGIN;
 
-
     static const uint8_t
             BITMAP_WIDTH = 8,
             BITMAP_AVERAGE_HEIGHT = 8,
@@ -37,29 +36,57 @@ private: // constants
 private:
     U8G2_PCD8544_84X48_1_4W_HW_SPI *display;
 
-    void renderGraph(float *input, uint32_t count, float max, float min) {
-        // build x-axis
+    void renderGraph(const float* input, size_t count, float min, float max) {
+        // calculate vertical scale
+        float verticalScale = GRAPH_HEIGHT / (max - min);
+
+        for(int i = count - 1; i >= 0; i--){
+            float val = input[i];
+            int verticalCoordinate = GRAPH_Y;
+        }
+
+    }
+
+    void renderYAxis(float min, float max) {
+        // print max value at the top
+        display->setCursor(GRAPH_X, 7);
+        display->print(ceil(max));
+
+        // avg
+        display->setCursor(GRAPH_X, (GRAPH_Y - GRAPH_BOTTOM_MARGIN) / 2);
+        display->print(lround(min + (max - min) / 2));
+
+        // min
+        display->setCursor(GRAPH_X, GRAPH_Y - GRAPH_BOTTOM_MARGIN);
+        display->print(floor(min));
+
+        // line from top to bottom
+        display->drawVLine(GRAPH_X, GRAPH_Y, GRAPH_HEIGHT);
+    }
+
+    void renderXAxis(size_t count) {
+        // calculate for how many minutes/seconds the logger was running
         uint32_t logDuration = count * CONTINUOUS_MEASUREMENT_INTERVAL_SECS;
         uint32_t logMinutes = logDuration / 60;
         uint32_t logSeconds = logDuration % 60;
+
+        // draw line for left to right
         display->drawHLine(GRAPH_LEFT_START, GRAPH_Y + FONT_HEIGHT, GRAPH_WIDTH - GRAPH_LEFT_MARGIN);
+
+        // draw full log duration on left
         display->setCursor(GRAPH_LEFT_START, GRAPH_Y);
         display->print(logMinutes);
         display->print(":");
         display->print(logSeconds);
 
+        // draw "now" on the right
         display->setCursor(GRAPH_X + GRAPH_WIDTH - 8 * 5, GRAPH_Y);
         display->print("00:00");
+    }
 
-        // build y-axis
-        display->setCursor(GRAPH_X, 7);
-        display->print(ceil(max));
-
-        display->setCursor(GRAPH_X, (GRAPH_Y - GRAPH_BOTTOM_MARGIN) / 2);
-        display->print(lround(min + (max - min) / 2));
-
-        display->setCursor(GRAPH_X, GRAPH_Y - GRAPH_BOTTOM_MARGIN);
-        display->print(floor(min));
+    void renderGraphFrame(const float *input, uint32_t count, float max, float min) {
+        renderXAxis(count);
+        renderYAxis(min, max);
     }
 
     void renderContinuousScanIndicator(bool enabled) {
@@ -91,7 +118,7 @@ private:
 
 public:
     void update(
-            float *input,
+            const float *input,
             size_t count,
             bool continuousScanEnabled,
             bool backgroundLightEnabled,
@@ -107,6 +134,7 @@ public:
 
         display->firstPage();
         do {
+            renderGraphFrame(input, count, max, min);
             renderGraph(input, count, max, min);
             renderAverageMeasurement(sum / count);
             renderLastMeasurement(input[count - 1]);
