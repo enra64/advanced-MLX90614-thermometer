@@ -6,7 +6,19 @@
 #include "U8g2lib.h"
 #include "my_config.h"
 
-static const uint8_t AVERAGE_BITMAP[8] U8X8_PROGMEM = {0xbc, 0x42, 0xa1, 0x91, 0x89, 0x85, 0x42, 0x3d};
+// "test" defines :(
+//#define TESTING_DISABLE_HORIZONTAL_MARKING
+//#define TESTING_DISABLE_VERTICAL_MARKING
+//#define TESTING_DISABLE_FRAME
+//#define TESTING_DISABLE_GRAPH
+//#define TESTING_DISABLE_AVG_MEASUREMENT
+//#define TESTING_DISABLE_LAST_MEASUREMENT
+//#define TESTING_DISABLE_LASER_INDICATOR
+//#define TESTING_DISABLE_CONT_SCAN_INDICATOR
+//#define TESTING_DISABLE_BACKGROUND_LIGHT_INDICATOR
+//#define TESTING_DISABLE_MEASUREMENT_DIVIDERS
+
+// bitmaps so we can avoid loading the entire UTF8 symbol font
 static const uint8_t CONT_SCAN_BITMAP[8] U8X8_PROGMEM = {0xbc, 0x42, 0xa1, 0x91, 0x89, 0x85, 0x42, 0x3d};
 static const uint8_t LASER_BITMAP[10] U8X8_PROGMEM = {0x10, 0x08, 0x10, 0x08, 0x10, 0x08, 0x3c, 0x18, 0x3c, 0x18};
 static const uint8_t BG_LIGHT_BITMAP[7] U8X8_PROGMEM = {0x08, 0x08, 0x08, 0x49, 0x2a, 0x1c, 0x3e};
@@ -14,21 +26,34 @@ static const uint8_t BG_LIGHT_BITMAP[7] U8X8_PROGMEM = {0x08, 0x08, 0x08, 0x49, 
 class Display {
 private: // constants
     static const uint8_t FONT_HEIGHT = 7;
-    static const uint8_t WIDTH = 84, HEIGHT = 48;
-    static const uint8_t LAST_MEASUREMENT_X = 0, LAST_MEASUREMENT_Y = HEIGHT;
-    static const uint8_t AVG_MEASUREMENT_X = 28, AVG_MEASUREMENT_Y = HEIGHT;
 
-    static const uint8_t CONT_SCAN_IND_X = 56, CONT_SCAN_IND_Y = HEIGHT;
-    static const uint8_t LASER_IND_X = 63, LASER_IND_Y = HEIGHT;
-    static const uint8_t BG_IND_X = 70, BG_IND_Y = HEIGHT;
+    static const uint8_t DISPLAY_WIDTH = 84, DISPLAY_HEIGHT = 48, DISPLAY_BOTTOM = DISPLAY_HEIGHT;
 
-    static const uint8_t GRAPH_X = 0, GRAPH_WIDTH = 84, GRAPH_HEIGHT = 36, GRAPH_Y = HEIGHT - GRAPH_HEIGHT;
-    static const uint8_t GRAPH_BOTTOM_MARGIN = 8, GRAPH_LEFT_MARGIN = 8;
-    static const uint8_t GRAPH_LEFT_START = GRAPH_X + GRAPH_LEFT_MARGIN;
+    static const uint8_t LAST_MEASUREMENT_X = 0, LAST_MEASUREMENT_Y = DISPLAY_BOTTOM;
+    static const uint8_t AVG_MEASUREMENT_X = 28, AVG_MEASUREMENT_Y = DISPLAY_BOTTOM;
+
+    static const uint8_t CONT_SCAN_IND_X = 56, CONT_SCAN_IND_Y = DISPLAY_BOTTOM;
+    static const uint8_t LASER_IND_X = 63, LASER_IND_Y = DISPLAY_BOTTOM;
+    static const uint8_t BG_IND_X = 70, BG_IND_Y = DISPLAY_BOTTOM;
+
+    // definitions for the graph itself
+    static const uint8_t
+            GRAPH_X = GRAPH_LEGEND_X + GRAPH_LEGEND_WIDTH,
+            GRAPH_Y = GRAPH_LEGEND_Y - GRAPH_LEGEND_HEIGHT,
+            GRAPH_WIDTH = DISPLAY_WIDTH - GRAPH_LEGEND_WIDTH,
+            GRAPH_HEIGHT = 36,
+            GRAPH_RIGHT = GRAPH_X + GRAPH_WIDTH,
+            GRAPH_TOP = GRAPH_Y + GRAPH_HEIGHT;
+
+    // definitions for the graph decorations
+    static const uint8_t
+            GRAPH_LEGEND_WIDTH = 8, GRAPH_LEGEND_HEIGHT = 8,
+            GRAPH_LEGEND_X = 0, GRAPH_LEGEND_Y = GRAPH_HEIGHT + GRAPH_LEGEND_HEIGHT,
+            GRAPH_LEGEND_RIGHT = GRAPH_LEGEND_X + GRAPH_LEGEND_WIDTH,
+            GRAPH_LEGEND_TOP = GRAPH_LEGEND_HEIGHT + GRAPH_LEGEND_Y;
 
     static const uint8_t
             BITMAP_WIDTH = 8,
-            BITMAP_AVERAGE_HEIGHT = 8,
             BITMAP_CONT_SCAN_HEIGHT = 8,
             BITMAP_LASER_HEIGHT = 10,
             BITMAP_BG_LIGHT_HEIGHT = 7;
@@ -36,62 +61,69 @@ private: // constants
 private:
     U8G2_PCD8544_84X48_1_4W_HW_SPI *display;
 
-    void renderGraph(const float* input, size_t count, float min, float max) {
+    void renderBottomMeasurementDividers() {
+        uint8_t dividerTop = DISPLAY_BOTTOM - FONT_HEIGHT;
+        display->drawHLine(0, dividerTop, DISPLAY_WIDTH);
+        display->drawVLine(AVG_MEASUREMENT_X - 2, 0, dividerTop);
+        display->drawVLine(CONT_SCAN_IND_X - 2, 0, dividerTop);
+    }
+
+    void renderGraph(const float *input, size_t count, float min, float max) {
         // calculate vertical scale
         float verticalScale = GRAPH_HEIGHT / (max - min);
 
-        for(int i = count - 1; i >= 0; i--){
-            float val = input[i];
-            int verticalCoordinate = GRAPH_Y;
+        for (int i = 0; i < count; i++) {
+            float val = input[count - 1 - i];
+            uint8_t x = static_cast<uint8_t >(GRAPH_RIGHT - i);
+            uint8_t y = static_cast<uint8_t>(GRAPH_Y + (val - min) * verticalScale);
+            display->drawPixel(x, y);
         }
 
     }
 
-    void renderYAxis(float min, float max) {
+    void renderFrame() {
+        // line from top to bottom
+        display->drawVLine(GRAPH_X, GRAPH_Y, GRAPH_HEIGHT);
+
+        // draw line for left to right
+        display->drawHLine(GRAPH_X, GRAPH_Y, GRAPH_WIDTH);
+    }
+
+    void renderYMarks(float min, float max) {
         // print max value at the top
-        display->setCursor(GRAPH_X, 7);
+        display->setCursor(GRAPH_LEGEND_X, GRAPH_LEGEND_TOP - FONT_HEIGHT);
         display->print(ceil(max));
 
         // avg
-        display->setCursor(GRAPH_X, (GRAPH_Y - GRAPH_BOTTOM_MARGIN) / 2);
+        display->setCursor(GRAPH_LEGEND_X, GRAPH_LEGEND_Y + GRAPH_LEGEND_HEIGHT / 2);
         display->print(lround(min + (max - min) / 2));
 
         // min
-        display->setCursor(GRAPH_X, GRAPH_Y - GRAPH_BOTTOM_MARGIN);
+        display->setCursor(GRAPH_LEGEND_X, GRAPH_LEGEND_Y);
         display->print(floor(min));
-
-        // line from top to bottom
-        display->drawVLine(GRAPH_X, GRAPH_Y, GRAPH_HEIGHT);
     }
 
-    void renderXAxis(size_t count) {
+    void renderXMarks(size_t count) {
         // calculate for how many minutes/seconds the logger was running
         uint32_t logDuration = count * CONTINUOUS_MEASUREMENT_INTERVAL_SECS;
         uint32_t logMinutes = logDuration / 60;
         uint32_t logSeconds = logDuration % 60;
 
-        // draw line for left to right
-        display->drawHLine(GRAPH_LEFT_START, GRAPH_Y + FONT_HEIGHT, GRAPH_WIDTH - GRAPH_LEFT_MARGIN);
-
         // draw full log duration on left
-        display->setCursor(GRAPH_LEFT_START, GRAPH_Y);
+        display->setCursor(GRAPH_LEGEND_X, GRAPH_LEGEND_Y);
         display->print(logMinutes);
         display->print(":");
         display->print(logSeconds);
 
         // draw "now" on the right
-        display->setCursor(GRAPH_X + GRAPH_WIDTH - 8 * 5, GRAPH_Y);
+        display->setCursor(GRAPH_LEGEND_RIGHT - 8 * 5 /*subtract approx width of characters*/, GRAPH_LEGEND_Y);
         display->print("00:00");
-    }
-
-    void renderGraphFrame(const float *input, uint32_t count, float max, float min) {
-        renderXAxis(count);
-        renderYAxis(min, max);
     }
 
     void renderContinuousScanIndicator(bool enabled) {
         if (enabled)
-            display->drawXBMP(CONT_SCAN_IND_X, CONT_SCAN_IND_Y, BITMAP_WIDTH, BITMAP_CONT_SCAN_HEIGHT, CONT_SCAN_BITMAP);
+            display->drawXBMP(CONT_SCAN_IND_X, CONT_SCAN_IND_Y, BITMAP_WIDTH, BITMAP_CONT_SCAN_HEIGHT,
+                              CONT_SCAN_BITMAP);
     }
 
     void renderLaserIndicator(bool enabled) {
@@ -134,19 +166,42 @@ public:
 
         display->firstPage();
         do {
-            renderGraphFrame(input, count, max, min);
+#ifndef TESTING_DISABLE_HORIZONTAL_MARKING
+            renderXMarks(count);
+#endif
+#ifndef TESTING_DISABLE_VERTICAL_MARKING
+            renderYMarks(min, max);
+#endif
+#ifndef TESTING_DISABLE_FRAME
+            renderFrame();
+#endif
+#ifndef TESTING_DISABLE_GRAPH
             renderGraph(input, count, max, min);
+#endif
+#ifndef TESTING_DISABLE_AVG_MEASUREMENT
             renderAverageMeasurement(sum / count);
+#endif
+#ifndef TESTING_DISABLE_LAST_MEASUREMENT
             renderLastMeasurement(input[count - 1]);
+#endif
+#ifndef TESTING_DISABLE_LASER_INDICATOR
             renderLaserIndicator(laserEnabled);
+#endif
+#ifndef TESTING_DISABLE_CONT_SCAN_INDICATOR
             renderContinuousScanIndicator(continuousScanEnabled);
+#endif
+#ifndef TESTING_DISABLE_BACKGROUND_LIGHT_INDICATOR
             renderBackgroundLightIndicator(backgroundLightEnabled);
+#endif
+#ifndef TESTING_DISABLE_MEASUREMENT_DIVIDERS
+            renderBottomMeasurementDividers();
+#endif
         } while ((bool) display->nextPage());
     }
 
     /// Basically find out how many points we can display
     size_t getGraphHorizontalResolution() {
-        return WIDTH - GRAPH_LEFT_MARGIN;
+        return GRAPH_WIDTH;
     }
 
     Display() {
