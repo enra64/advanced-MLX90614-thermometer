@@ -10,7 +10,7 @@
 //#define TESTING_DISABLE_HORIZONTAL_MARKING
 //#define TESTING_DISABLE_VERTICAL_MARKING
 //#define TESTING_DISABLE_FRAME
-#define TESTING_DISABLE_GRAPH
+//#define TESTING_DISABLE_GRAPH
 
 //#define TESTING_DISABLE_AVG_MEASUREMENT
 //#define TESTING_DISABLE_LAST_MEASUREMENT
@@ -79,8 +79,9 @@ private:
 
         for (size_t i = 0; i < count; i++) {
             float val = input[count - 1 - i];
-            uint8_t x = static_cast<uint8_t >(GRAPH_RIGHT - i);
-            uint8_t y = static_cast<uint8_t>(GRAPH_Y + (val - min) * verticalScale);
+            uint8_t x = static_cast<uint8_t >(GRAPH_RIGHT - i - 1);
+            uint8_t y = static_cast<uint8_t>(GRAPH_Y - (val - min) * verticalScale);
+            //Serial.print("drawing pixel at ");Serial.print(x);Serial.print(",");Serial.println(y);
             display->drawPixel(x, y);
         }
     }
@@ -194,7 +195,7 @@ public:
             renderFrame();
 #endif
 #ifndef TESTING_DISABLE_GRAPH
-            renderGraph(input, count, max, min);
+            renderGraph(input, count, min, max);
 #endif
 #ifndef TESTING_DISABLE_AVG_MEASUREMENT
             renderAverageMeasurement(sum / count);
