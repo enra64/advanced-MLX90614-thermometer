@@ -9,8 +9,9 @@
 // "test" defines :(
 #define TESTING_DISABLE_HORIZONTAL_MARKING
 #define TESTING_DISABLE_VERTICAL_MARKING
-#define TESTING_DISABLE_FRAME
+//#define TESTING_DISABLE_FRAME
 #define TESTING_DISABLE_GRAPH
+
 //#define TESTING_DISABLE_AVG_MEASUREMENT
 //#define TESTING_DISABLE_LAST_MEASUREMENT
 //#define TESTING_DISABLE_LASER_INDICATOR
@@ -32,19 +33,21 @@ private: // constants
     static const uint8_t LAST_MEASUREMENT_X = 0, LAST_MEASUREMENT_Y = DISPLAY_BOTTOM - FONT_HEIGHT / 4;
     static const uint8_t AVG_MEASUREMENT_X = 28, AVG_MEASUREMENT_Y = DISPLAY_BOTTOM - FONT_HEIGHT / 4;
 
-    static const uint8_t GRAPH_HEIGHT = 36;
+    static const uint8_t GRAPH_HEIGHT = 26;
 
     // definitions for the graph decorations
     static const uint8_t
-            GRAPH_LEGEND_WIDTH = 8, GRAPH_LEGEND_HEIGHT = 8,
-            GRAPH_LEGEND_X = 0, GRAPH_LEGEND_Y = GRAPH_HEIGHT + GRAPH_LEGEND_HEIGHT,
+            GRAPH_LEGEND_WIDTH = 20,
+            GRAPH_LEGEND_HEIGHT = 8,
+            GRAPH_LEGEND_X = 0,
+            GRAPH_LEGEND_Y = GRAPH_HEIGHT + GRAPH_LEGEND_HEIGHT,
             GRAPH_LEGEND_RIGHT = GRAPH_LEGEND_X + GRAPH_LEGEND_WIDTH,
             GRAPH_LEGEND_TOP = GRAPH_LEGEND_HEIGHT + GRAPH_LEGEND_Y;
 
     // definitions for the graph itself
     static const uint8_t
             GRAPH_X = GRAPH_LEGEND_X + GRAPH_LEGEND_WIDTH,
-            GRAPH_Y = GRAPH_LEGEND_Y - GRAPH_LEGEND_HEIGHT,
+            GRAPH_Y = GRAPH_HEIGHT,
             GRAPH_WIDTH = DISPLAY_WIDTH - GRAPH_LEGEND_WIDTH,
             GRAPH_RIGHT = GRAPH_X + GRAPH_WIDTH,
             GRAPH_TOP = GRAPH_Y + GRAPH_HEIGHT;
@@ -83,7 +86,7 @@ private:
 
     void renderFrame() {
         // line from top to bottom
-        display->drawVLine(GRAPH_X, GRAPH_Y, GRAPH_HEIGHT);
+        display->drawVLine(GRAPH_X, 0, GRAPH_HEIGHT);
 
         // draw line for left to right
         display->drawHLine(GRAPH_X, GRAPH_Y, GRAPH_WIDTH);
