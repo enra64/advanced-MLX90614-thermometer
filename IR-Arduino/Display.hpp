@@ -7,8 +7,8 @@
 #include "my_config.h"
 
 // "test" defines :(
-#define TESTING_DISABLE_HORIZONTAL_MARKING
-#define TESTING_DISABLE_VERTICAL_MARKING
+//#define TESTING_DISABLE_HORIZONTAL_MARKING
+//#define TESTING_DISABLE_VERTICAL_MARKING
 //#define TESTING_DISABLE_FRAME
 #define TESTING_DISABLE_GRAPH
 
@@ -26,7 +26,7 @@ static const uint8_t BG_LIGHT_BITMAP[7] U8X8_PROGMEM = {0x55, 0x3e, 0x63, 0x22, 
 
 class Display {
 private: // constants
-    static const uint8_t FONT_HEIGHT = 12;
+    static const uint8_t FONT_HEIGHT = 9;
 
     static const uint8_t DISPLAY_WIDTH = 84, DISPLAY_HEIGHT = 48, DISPLAY_BOTTOM = DISPLAY_HEIGHT;
 
@@ -37,18 +37,19 @@ private: // constants
 
     // definitions for the graph decorations
     static const uint8_t
-            GRAPH_LEGEND_WIDTH = 20,
+            LOWER_GRAPH_LEGEND_WIDTH = DISPLAY_WIDTH,
+            LEFT_GRAPH_LEGEND_WIDTH = 12,
             GRAPH_LEGEND_HEIGHT = 8,
             GRAPH_LEGEND_X = 0,
             GRAPH_LEGEND_Y = GRAPH_HEIGHT + GRAPH_LEGEND_HEIGHT,
-            GRAPH_LEGEND_RIGHT = GRAPH_LEGEND_X + GRAPH_LEGEND_WIDTH,
-            GRAPH_LEGEND_TOP = GRAPH_LEGEND_HEIGHT + GRAPH_LEGEND_Y;
+            GRAPH_LEGEND_RIGHT = GRAPH_LEGEND_X + LOWER_GRAPH_LEGEND_WIDTH,
+            GRAPH_LEGEND_TOP = GRAPH_LEGEND_Y - GRAPH_LEGEND_HEIGHT;
 
     // definitions for the graph itself
     static const uint8_t
-            GRAPH_X = GRAPH_LEGEND_X + GRAPH_LEGEND_WIDTH,
+            GRAPH_X = GRAPH_LEGEND_X + LEFT_GRAPH_LEGEND_WIDTH,
             GRAPH_Y = GRAPH_HEIGHT,
-            GRAPH_WIDTH = DISPLAY_WIDTH - GRAPH_LEGEND_WIDTH,
+            GRAPH_WIDTH = DISPLAY_WIDTH - LEFT_GRAPH_LEGEND_WIDTH,
             GRAPH_RIGHT = GRAPH_X + GRAPH_WIDTH,
             GRAPH_TOP = GRAPH_Y + GRAPH_HEIGHT;
 
@@ -86,24 +87,24 @@ private:
 
     void renderFrame() {
         // line from top to bottom
-        display->drawVLine(GRAPH_X, 0, GRAPH_HEIGHT);
+        display->drawVLine(LEFT_GRAPH_LEGEND_WIDTH, 0, GRAPH_HEIGHT);
 
         // draw line for left to right
-        display->drawHLine(GRAPH_X, GRAPH_Y, GRAPH_WIDTH);
+        display->drawHLine(LEFT_GRAPH_LEGEND_WIDTH, GRAPH_Y, GRAPH_WIDTH);
     }
 
     void renderYMarks(float min, float max) {
         // print max value at the top
-        display->setCursor(GRAPH_LEGEND_X, GRAPH_LEGEND_TOP - FONT_HEIGHT);
-        display->print(ceil(max));
+        display->setCursor(GRAPH_LEGEND_X, 6);
+        display->print((int) ceil(max));
 
         // avg
-        display->setCursor(GRAPH_LEGEND_X, GRAPH_LEGEND_Y + GRAPH_LEGEND_HEIGHT / 2);
-        display->print(lround(min + (max - min) / 2));
+        display->setCursor(GRAPH_LEGEND_X, GRAPH_Y - GRAPH_LEGEND_HEIGHT - 2);
+        display->print((int) lround(min + (max - min) / 2));
 
         // min
-        display->setCursor(GRAPH_LEGEND_X, GRAPH_LEGEND_Y);
-        display->print(floor(min));
+        display->setCursor(GRAPH_LEGEND_X, GRAPH_Y);
+        display->print((int) floor(min));
     }
 
     void renderXMarks(size_t count) {
@@ -113,13 +114,13 @@ private:
         uint32_t logSeconds = logDuration % 60;
 
         // draw full log duration on left
-        display->setCursor(GRAPH_LEGEND_X, GRAPH_LEGEND_Y);
+        display->setCursor(GRAPH_LEGEND_X + 15, GRAPH_LEGEND_Y);
         display->print(logMinutes);
         display->print(":");
         display->print(logSeconds);
 
         // draw "now" on the right
-        display->setCursor(GRAPH_LEGEND_RIGHT - 8 * 5 /*subtract approx width of characters*/, GRAPH_LEGEND_Y);
+        display->setCursor(GRAPH_LEGEND_RIGHT - 4 * 5 /*subtract approx width of characters*/, GRAPH_LEGEND_Y);
         display->print("00:00");
     }
 

@@ -79,7 +79,7 @@ void loop() {
 #include "Display.hpp"
 
 Display* display;
-float example_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+float example_data[] = {0, 1, 2, 3, 4, 501, 6, 7, 8, 9, 999};
 float* example_data_full_res;
 
 void setup(){
