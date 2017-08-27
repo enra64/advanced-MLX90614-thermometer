@@ -1,0 +1,4 @@
+#define cont_scan_enabled_width 8
+#define cont_scan_enabled_height 8
+static unsigned char cont_scan_enabled_bits[] = {
+   0xdf, 0x91, 0x89, 0x85, 0xa1, 0x91, 0x89, 0xfb };

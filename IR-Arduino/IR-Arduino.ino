@@ -3,7 +3,7 @@
 #define TEST_DISPLAY 2
 #define TEST_LOGGER 3
 #define TEST_THERMOMETER_WRAPPER 4
-#define MODE TEST_INPUT
+#define MODE TEST_DISPLAY
 
 
 #if MODE == RUN
@@ -35,7 +35,6 @@ void loop() {
     inputHandler->update();
     thermometerLogic->update();
 }
-
 #elif MODE == TEST_INPUT
 #include "Input.hpp"
 Input *inputHandler;
@@ -91,14 +90,16 @@ void setup(){
     Serial.println(display->getGraphHorizontalResolution());
 
     example_data_full_res = new float[display->getGraphHorizontalResolution()];
-    for(int i = 0; i < display->getGraphHorizontalResolution(); i++){
+    for(size_t i = 0; i < display->getGraphHorizontalResolution(); i++){
         example_data_full_res[i] = i * i;
     }
 }
 
 void loop() {
+    Serial.println("display indicators");
     display->update(example_data, 11, true, true, true);
     delay(1000);
+    Serial.println("hide indicators");
     display->update(example_data, 11, false, false, false);
     delay(1000);
 }
