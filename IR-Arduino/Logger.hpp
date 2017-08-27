@@ -7,7 +7,7 @@
 
 namespace Logger {
     SdFat SD;
-    char logFileName[8];
+    char logFileName[13];
 
 #define SD_READ_BUFFER_SIZE 8 // 8 bytes should be enough for "XXX.XX,\0"
 #define error(s) Serial.println(s)
@@ -95,7 +95,7 @@ namespace Logger {
             // read entire chunk; may be extended size if no clean division is available
             size_t chunkSize = i < extendedChunkCount ? baseChunkSize + 1 : baseChunkSize;
             for (size_t j = 0; j < chunkSize; j++) {
-                bool success = readEntry(sdin, &valueBuffer);
+                readEntry(sdin, &valueBuffer);
                 runningMean = runningMean + ((valueBuffer - runningMean) / (j + 1));
             }
 
@@ -131,13 +131,12 @@ namespace Logger {
     }
 
     void chooseLogFile() {
-        for (uint16_t i = 1; i < UINT16_MAX; i++) {
-            snprintf(logFileName, 8, "%u.csv", i);
+        for (uint16_t i = 0; i < UINT16_MAX; i++) {
+            itoa(i, logFileName, 10);
             Serial.println(logFileName);
             if (!SD.exists(logFileName))
                 break;
         }
-        snprintf(logFileName, 8, "0.csv");
     }
 
     void init() {

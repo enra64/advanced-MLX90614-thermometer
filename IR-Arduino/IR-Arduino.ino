@@ -113,19 +113,20 @@ void printBuffer(float *buffer, size_t length) {
 }
 
 void setup() {
-    Logger::init();
     Serial.begin(115200);
+    Logger::init();
 
     Serial.println("appending 1.1, 2.2, 3.3, 4.5 to log");
 
     long time_logger = millis();
-    Logger::append(1.11);
+    Logger::append(1);
+    Logger::append(1);
+    Logger::append(1);
+    Logger::append(1);
     Serial.print("appending once took (ms): ");
     Serial.println(millis() - time_logger);
 
-    Logger::append(2.222);
-    Logger::append(3.333);
-    Logger::append(4.577);
+    //Logger::append(2.222);Logger::append(3.333);Logger::append(4.577);
 
     Serial.print("retrieving last value: ");
     float lastValue;
