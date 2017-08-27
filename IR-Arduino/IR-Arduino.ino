@@ -3,7 +3,7 @@
 #define TEST_DISPLAY 2
 #define TEST_LOGGER 3
 #define TEST_THERMOMETER_WRAPPER 4
-#define MODE TEST_DISPLAY
+#define MODE TEST_INPUT
 
 
 #if MODE == RUN
@@ -48,6 +48,7 @@ void setup() {
             laserClickListener,
             backgroundLightClickListener
     );
+    Serial.println("init ok");
 }
 
 // listeners because std::bind is too fat for AVRs

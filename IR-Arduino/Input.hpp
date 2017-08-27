@@ -34,10 +34,10 @@ public:
         backgroundBouncer.update();
 
         // laser button updated?
-        if (laserBouncer.fell() || laserBouncer.rose()) laserClickListener(laserBouncer.read());
+        if (laserBouncer.rose()) laserClickListener(laserBouncer.read());
 
         // background button updated?
-        if (backgroundBouncer.fell() || backgroundBouncer.rose()) backgroundClickListener(backgroundBouncer.read());
+        if (backgroundBouncer.rose()) backgroundClickListener(backgroundBouncer.read());
     }
 };
 

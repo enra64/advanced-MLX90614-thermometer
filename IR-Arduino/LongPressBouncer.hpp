@@ -17,11 +17,17 @@ public:
             longClickListener(longClickListener),
             shortClickListener(shortClickListener) {
         bouncer.attach(pin, INPUT_PULLUP);
-        pressed = bouncer.read();
+        pressed = false;
     }
 
     void update() {
         bouncer.update();
+
+        // held down longer than the LONG_CLICK_INTERVAL
+        if (pressed && (millis() - lastActivation) > LONG_CLICK_INTERVAL) {
+            longClickListener(bouncer.read());
+            pressed = false;
+        }
 
         // pressed down
         if (bouncer.fell()) {
@@ -34,18 +40,12 @@ public:
             pressed = false;
             shortClickListener(bouncer.read());
         }
-
-        // held down longer than the LONG_CLICK_INTERVAL
-        if (pressed && (millis() - lastActivation) > LONG_CLICK_INTERVAL) {
-            longClickListener(bouncer.read());
-            pressed = false;
-        }
     }
 
 private:
     bool pressed;
     double lastActivation;
-    ClickListener shortClickListener, longClickListener;
+    ClickListener longClickListener, shortClickListener;
     Bounce bouncer = Bounce();
 };
 

@@ -55,7 +55,7 @@ foreach(VAR
         # Environment variables are always preserved.
         set(ENV{_ARDUINO_CMAKE_WORKAROUND_${VAR}} "${${VAR}}")
     else()
-        if($ENV{_ARDUINO_CMAKE_WORKAROUND_${VAR}})
+        if(DEFINED $ENV{_ARDUINO_CMAKE_WORKAROUND_${VAR}})
             set(${VAR} "$ENV{_ARDUINO_CMAKE_WORKAROUND_${VAR}}")
             message(DEBUG "RESTORED ${VAR} from env: ${${VAR}}")
         endif()
