@@ -16,11 +16,11 @@ namespace Logger {
     /// \param entry the value that is to be appended.
     /// \return true if the operation succeeded, false otherwise
     bool append(float entry) {
-        ofstream sdout(logFileName);
+        ofstream sdout(logFileName, O_APPEND);
         sdout.precision(2);
 
         if (!sdout.is_open()) {
-            error("LOG_NO_OPEN");
+            error("LOG_NO_OPEN1");
             return false;
         }
 
@@ -34,11 +34,10 @@ namespace Logger {
     /// \param buffer buffer for reading from the file. must be of size SD_READ_BUFFER_SIZE
     /// \param [out] result csv result param
     /// \return
-    bool readEntry(ifstream &sdin, char *buffer, float &result) {
-        sdin.get(buffer, SD_READ_BUFFER_SIZE, ',');
+    bool readEntry(ifstream &sdin, float* result) {
         if (sdin.fail() || sdin.eof())
             return false;
-        sdin >> result;
+        sdin >> *result;
         sdin.ignore();
         return true;
     }
@@ -46,11 +45,10 @@ namespace Logger {
     size_t countEntries(ifstream &sdin) {
         // allocate buffer for sd reading, and result values
         float value;
-        char buffer[SD_READ_BUFFER_SIZE];
 
         // count entries...
         size_t entryCount = 0;
-        while (readEntry(sdin, buffer, value)) entryCount++;
+        while (readEntry(sdin, &value)) entryCount++;
         return entryCount;
     }
 
@@ -59,45 +57,49 @@ namespace Logger {
     ///
     /// \param requestedPoints amount of points that should be returned
     /// \param data pointer to an array of floats with a minimum length of "requestedPoints"
+    /// \param [out] success whether a failure was found
     /// \return number of points that were found
-    size_t getLog(float *data, size_t requestedPoints) {
+    size_t getLog(float *data, size_t requestedPoints, bool &success) {
         ifstream sdin(logFileName);
+        success = true;
 
-        if (!sdin.is_open())
-            error("LOG_NO_OPEN");
+        if (!sdin.is_open()){
+            success = false;
+            error("LOG_NO_OPEN2");
+        }
 
-        char buffer[10];
         size_t entryCount = countEntries(sdin);
-
-        // reset position
-        sdin.seekg(0);
 
         // iterate over all available points
         if (entryCount <= requestedPoints) {
             size_t readEntries = 0;
             while (readEntries < entryCount)
-                readEntry(sdin, buffer, data[readEntries++]);
+                readEntry(sdin, data + readEntries++);
 
             sdin.close();
             return readEntries;
         }
 
+        sdin.clear();
+        sdin.seekg(0, sdin.beg);
+
         // subsample as follows: read a chunk of at most MAX_CHUNK_SIZE values, store average in data array, read next chunk
         // if there is no clean division available, use a +1 size for the first AVL_ENTRIES % CHUNK_SIZE entries
         size_t baseChunkSize = entryCount / requestedPoints;
         size_t extendedChunkCount = entryCount % baseChunkSize;
-        float valueBuffer;
+        float valueBuffer = -1;
 
-        for (int i = 0; i < requestedPoints; i++) {
+        for (size_t i = 0; i < requestedPoints; i++) {
             float runningMean = 0;
 
             // read entire chunk; may be extended size if no clean division is available
             size_t chunkSize = i < extendedChunkCount ? baseChunkSize + 1 : baseChunkSize;
-            for (int j = 0; j < chunkSize; j++) {
-                readEntry(sdin, buffer, valueBuffer);
+            for (size_t j = 0; j < chunkSize; j++) {
+                bool success = readEntry(sdin, &valueBuffer);
                 runningMean = runningMean + ((valueBuffer - runningMean) / (j + 1));
             }
 
+            //Serial.print("running mean ");Serial.print(i);Serial.print(" is ");Serial.println(runningMean);
             data[i] = runningMean;
         }
 
@@ -112,24 +114,26 @@ namespace Logger {
         // open input stream
         ifstream sdin(logFileName);
         if (!sdin.is_open()) {
-            error("LOG_NO_OPEN");
+            error("LOG_NO_OPEN3");
             return false;
         }
 
         // seek to the last value
-        sdin.seekg(0, sdin.end);
-        sdin.seekg(SD_READ_BUFFER_SIZE, sdin.beg);
-
-        // allocate buffer
-        char buffer[SD_READ_BUFFER_SIZE];
+        sdin.seekg(sdin.end);
+        sdin.seekg(5, sdin.beg);
 
         // read and return the last entry
-        return readEntry(sdin, buffer, lastValue);
+        bool retVal = readEntry(sdin, &lastValue);
+
+        sdin.close();
+
+        return retVal;
     }
 
     void chooseLogFile() {
-        for (uint16_t i = 0; i < UINT16_MAX; i++) {
+        for (uint16_t i = 1; i < UINT16_MAX; i++) {
             snprintf(logFileName, 8, "%u.csv", i);
+            Serial.println(logFileName);
             if (!SD.exists(logFileName))
                 break;
         }

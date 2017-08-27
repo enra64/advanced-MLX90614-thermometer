@@ -3,7 +3,7 @@
 #define TEST_DISPLAY 2
 #define TEST_LOGGER 3
 #define TEST_THERMOMETER_WRAPPER 4
-#define MODE TEST_DISPLAY
+#define MODE TEST_LOGGER
 
 
 #if MODE == RUN
@@ -75,7 +75,6 @@ void loop() {
     inputHandler->update();
 }
 #elif MODE == TEST_DISPLAY
-
 #include "Display.hpp"
 
 Display* display;
@@ -103,13 +102,12 @@ void loop() {
     display->update(example_data, 11, false, false, false);
     delay(1000);
 }
-
 #elif MODE == TEST_LOGGER
 
-#include <Logger.hpp>
+#include "Logger.hpp"
 
 void printBuffer(float *buffer, size_t length) {
-    for (int i = 0; i < length; i++)
+    for (size_t i = 0; i < length; i++)
         Serial.println(buffer[i]);
     Serial.println("finished buffer printing");
 }
@@ -121,34 +119,36 @@ void setup() {
     Serial.println("appending 1.1, 2.2, 3.3, 4.5 to log");
 
     long time_logger = millis();
-    Logger::append(1.1);
+    Logger::append(1.11);
     Serial.print("appending once took (ms): ");
     Serial.println(millis() - time_logger);
 
-    Logger::append(2.2);
-    Logger::append(3.3);
-    Logger::append(4.5);
+    Logger::append(2.222);
+    Logger::append(3.333);
+    Logger::append(4.577);
 
     Serial.print("retrieving last value: ");
     float lastValue;
     Logger::getLastEntry(lastValue);
     Serial.println(lastValue);
 
-    float buffer[10];
 
-    Serial.println("retrieving less than full log:");
-    for (int i = 0; i < 10; i++) buffer[i] = 0;
-    Logger::getLog(buffer, 2);
+    float buffer[10];
+    bool success = true;
+
+    Serial.println("retrieving 2 log items:");
+    for (size_t i = 0; i < 10; i++) buffer[i] = 0;
+    Logger::getLog(buffer, 2, success);
     printBuffer(buffer, 10);
 
     Serial.println("retrieving exactly the full log:");
-    for (int i = 0; i < 10; i++) buffer[i] = 0;
-    Logger::getLog(buffer, 4);
+    for (size_t i = 0; i < 10; i++) buffer[i] = 0;
+    Logger::getLog(buffer, 4, success);
     printBuffer(buffer, 10);
 
     Serial.println("retrieving more than full log:");
-    for (int i = 0; i < 10; i++) buffer[i] = 0;
-    Logger::getLog(buffer, 12);
+    for (size_t i = 0; i < 10; i++) buffer[i] = 0;
+    Logger::getLog(buffer, 12, success);
     printBuffer(buffer, 10);
 }
 
