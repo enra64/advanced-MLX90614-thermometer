@@ -3,7 +3,7 @@
 #define TEST_DISPLAY 2
 #define TEST_LOGGER 3
 #define TEST_THERMOMETER_WRAPPER 4
-#define MODE TEST_LOGGER
+#define MODE RUN
 
 
 #if MODE == RUN
