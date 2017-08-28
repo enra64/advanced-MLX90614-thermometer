@@ -28,6 +28,7 @@ private:
 public:
     AdvancedThermometerLogic() : displayIsDirty(false), laserEnabled(false), backgroundLightEnabled(false) {
         // initialize main classes
+        digitalWrite(SPI_CS_ATMEGA328, HIGH);
         Logger::init();
         display = new Display();
         thermometer = new Thermometer();
@@ -51,7 +52,8 @@ public:
 
         if(displayIsDirty){
             displayIsDirty = false;
-            Logger::getLog(logBuffer, logLength);
+            bool success = false;
+            Logger::getLog(logBuffer, logLength, success);
             display->update(logBuffer, logLength, scanManager->isEnabled(), backgroundLightEnabled, laserEnabled);
         }
     }

@@ -19,6 +19,8 @@
 //#define TESTING_DISABLE_BACKGROUND_LIGHT_INDICATOR
 //#define TESTING_DISABLE_MEASUREMENT_DIVIDERS
 
+#define DISPLAY_TYPE U8G2_PCD8544_84X48_1_4W_HW_SPI
+
 // bitmaps so we can avoid loading the entire UTF8 symbol font
 static const uint8_t CONT_SCAN_BITMAP[8] U8X8_PROGMEM = {0xdf, 0x91, 0x89, 0x85, 0xa1, 0x91, 0x89, 0xfb};
 static const uint8_t LASER_BITMAP[10] U8X8_PROGMEM = {0x10, 0x08, 0x10, 0x08, 0x10, 0x08, 0x3c, 0x18, 0x3c, 0x18};
@@ -64,7 +66,7 @@ private: // constants
     static const uint8_t BG_IND_X = 70, BG_IND_Y = DISPLAY_BOTTOM - BITMAP_BG_LIGHT_HEIGHT;
 
 private:
-    U8G2_PCD8544_84X48_F_4W_HW_SPI *display;
+    DISPLAY_TYPE *display;
 
     void renderBottomMeasurementDividers() {
         uint8_t dividerTop = DISPLAY_BOTTOM - FONT_HEIGHT;
@@ -161,7 +163,6 @@ private:
     }
 
     void renderAverageMeasurement(double averageValue) {
-
         display->setCursor(AVG_MEASUREMENT_X, AVG_MEASUREMENT_Y);
         display->print("Ø");
         display->print(averageValue);
@@ -183,6 +184,8 @@ public:
             sum += input[i];
         }
 
+        display->initDisplay();
+        display->setPowerSave(static_cast<uint8_t>(false));
         display->firstPage();
         do {
 #ifndef TESTING_DISABLE_HORIZONTAL_MARKING
@@ -224,7 +227,7 @@ public:
     }
 
     Display() {
-        display = new U8G2_PCD8544_84X48_F_4W_HW_SPI(U8G2_R0, SPI_CS_DISPLAY, SPI_DC, SPI_RESET);
+        display = new DISPLAY_TYPE(U8G2_R0, SPI_CS_DISPLAY, SPI_DC, SPI_RESET);
         display->begin();
         display->enableUTF8Print();
         //display->setFont(u8g2_font_7x14_tr);
