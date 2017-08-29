@@ -91,6 +91,8 @@ namespace Logger {
             size_t readEntries = 0;
             while (readEntries < entryCount && success){
                 success &= readEntry(sdin, data[readEntries++]);
+                Serial.print(F("read entry "));
+                Serial.println(readEntries);
             }
 
             for (size_t i = 0; i < readEntries; i++)Serial.println(data[i]);Serial.println(F("finished buffer printing test"));
