@@ -53,8 +53,15 @@ public:
         if(displayIsDirty){
             displayIsDirty = false;
             bool success = false;
-            Logger::getLog(logBuffer, logLength, success);
-            display->update(logBuffer, logLength, scanManager->isEnabled(), backgroundLightEnabled, laserEnabled);
+            Serial.println("test1");
+            size_t retrievedLogItems = Logger::getLog(logBuffer, logLength, success);
+            Serial.println("test2");
+
+            for (size_t i = 0; i < retrievedLogItems; i++)
+                Serial.println(logBuffer[i]);
+            Serial.println("finished buffer printing");
+
+            display->update(logBuffer, retrievedLogItems, scanManager->isEnabled(), backgroundLightEnabled, laserEnabled);
         }
     }
 
