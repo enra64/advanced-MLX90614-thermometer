@@ -1,7 +1,7 @@
 #ifndef IR_THERMO_DISPLAY_H
 #define IR_THERMO_DISPLAY_H
 
-#define FLT_MAX     3.40282347E+38F
+#define FLT_MAX     3.402822E+38F
 
 #include "U8g2lib.h"
 #include "my_config.h"
@@ -28,12 +28,12 @@ static const uint8_t BG_LIGHT_BITMAP[7] U8X8_PROGMEM = {0x55, 0x3e, 0x63, 0x22, 
 
 class Display {
 private: // constants
-    static const uint8_t FONT_HEIGHT = 9;
+    static const uint8_t BOTTOM_DIVIDER_HEIGHT = 11;
 
     static const uint8_t DISPLAY_WIDTH = 84, DISPLAY_HEIGHT = 48, DISPLAY_BOTTOM = DISPLAY_HEIGHT;
 
-    static const uint8_t LAST_MEASUREMENT_X = 0, LAST_MEASUREMENT_Y = DISPLAY_BOTTOM - FONT_HEIGHT / 4;
-    static const uint8_t AVG_MEASUREMENT_X = 28, AVG_MEASUREMENT_Y = DISPLAY_BOTTOM - FONT_HEIGHT / 4;
+    static const uint8_t LAST_MEASUREMENT_X = 0, LAST_MEASUREMENT_Y = DISPLAY_BOTTOM - BOTTOM_DIVIDER_HEIGHT / 4;
+    static const uint8_t AVG_MEASUREMENT_X = 28, AVG_MEASUREMENT_Y = DISPLAY_BOTTOM - BOTTOM_DIVIDER_HEIGHT / 4;
 
     static const uint8_t GRAPH_HEIGHT = 26;
 
@@ -69,10 +69,10 @@ private:
     DISPLAY_TYPE *display;
 
     void renderBottomMeasurementDividers() {
-        uint8_t dividerTop = DISPLAY_BOTTOM - FONT_HEIGHT;
+        uint8_t dividerTop = DISPLAY_BOTTOM - BOTTOM_DIVIDER_HEIGHT;
         display->drawHLine(0, dividerTop, DISPLAY_WIDTH);
-        display->drawVLine(AVG_MEASUREMENT_X - 2, dividerTop, FONT_HEIGHT);
-        display->drawVLine(CONT_SCAN_IND_X - 2, dividerTop, FONT_HEIGHT);
+        display->drawVLine(AVG_MEASUREMENT_X - 2, dividerTop, BOTTOM_DIVIDER_HEIGHT);
+        display->drawVLine(CONT_SCAN_IND_X - 2, dividerTop, BOTTOM_DIVIDER_HEIGHT);
     }
 
     void renderGraph(const float *input, size_t count, float min, float max) {
@@ -128,7 +128,7 @@ private:
     }
 
     void renderContinuousScanIndicator(bool enabled) {
-        if (!enabled)
+        if (enabled)
             display->drawXBMP(
                     CONT_SCAN_IND_X,
                     CONT_SCAN_IND_Y,
@@ -138,7 +138,7 @@ private:
     }
 
     void renderLaserIndicator(bool enabled) {
-        if (!enabled)
+        if (enabled)
             display->drawXBMP(
                     LASER_IND_X,
                     LASER_IND_Y,
@@ -148,7 +148,7 @@ private:
     }
 
     void renderBackgroundLightIndicator(bool enabled) {
-        if (!enabled)
+        if (enabled)
             display->drawXBMP(
                     BG_IND_X,
                     BG_IND_Y,
@@ -157,15 +157,19 @@ private:
                     BG_LIGHT_BITMAP);
     }
 
-    void renderLastMeasurement(double measurementValue) {
+    void renderLastMeasurement(float measurementValue) {
         display->setCursor(LAST_MEASUREMENT_X, LAST_MEASUREMENT_Y);
         display->print(measurementValue);
     }
 
-    void renderAverageMeasurement(double averageValue) {
+    void renderAverageMeasurement(float sum, size_t count) {
         display->setCursor(AVG_MEASUREMENT_X, AVG_MEASUREMENT_Y);
-        display->print("Ø");
-        display->print(averageValue);
+        if (count > 0) {
+            display->print("Ø");
+            display->print(sum / count);
+        } else {
+            display->print("NaN");
+        }
     }
 
 public:
@@ -201,7 +205,7 @@ public:
             renderGraph(input, count, min, max);
 #endif
 #ifndef TESTING_DISABLE_AVG_MEASUREMENT
-            renderAverageMeasurement(sum / count);
+            renderAverageMeasurement(sum, count);
 #endif
 #ifndef TESTING_DISABLE_LAST_MEASUREMENT
             renderLastMeasurement(input[count - 1]);
