@@ -85,15 +85,15 @@ public:
     }
 
     void onLaserToggled(bool activated) {
-        laserEnabled = activated;
+        laserEnabled = !laserEnabled;
         // enable the laser (transistor lets through on low, so activation should digitalWrite a LOW
-        digitalWrite(LASER_OUTPUT_PIN, static_cast<uint8_t>(!activated));
+        digitalWrite(LASER_OUTPUT_PIN, static_cast<uint8_t>(!laserEnabled));
         dirty();
     }
 
     void onBackgroundLightToggled(bool activated) {
-        backgroundLightEnabled = activated;
-        digitalWrite(BACKGROUND_LIGHT_OUTPUT_PIN, static_cast<uint8_t>(!activated));
+        backgroundLightEnabled = !backgroundLightEnabled;
+        digitalWrite(BACKGROUND_LIGHT_OUTPUT_PIN, static_cast<uint8_t>(!backgroundLightEnabled));
         dirty();
     }
 private:

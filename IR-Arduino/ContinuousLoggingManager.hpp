@@ -7,17 +7,13 @@
 
 #include "ThermometerWrapper.h"
 #include "my_config.h"
+#include "Logger.hpp"
 
 class ContinuousLoggingManager {
 private:
     Thermometer *thermometer;
     long lastScan = 0;
     bool enabled;
-
-    void executeScan() {
-        thermometer->getTemperature();
-        lastScan = millis();
-    }
 
 public:
     explicit ContinuousLoggingManager(Thermometer *thermometer) : thermometer(thermometer), enabled(false) {
@@ -27,7 +23,8 @@ public:
     /// \return true if a scan was executed
     bool update() {
         if (enabled && (millis() - lastScan) > CONTINUOUS_MEASUREMENT_INTERVAL_MILLI_SECS) {
-            executeScan();
+            Logger::append(thermometer->getTemperature());
+            lastScan = millis();
             return true;
         }
         return false;

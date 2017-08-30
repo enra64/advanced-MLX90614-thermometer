@@ -177,8 +177,11 @@ namespace Logger {
     bool chooseLogFile() {
         for (uint16_t i = 0; i < UINT16_MAX; i++) {
             itoa(i, logFileName, 10);
-            if (!SD.exists(logFileName))
-                return true;
+            if (!SD.exists(logFileName)){
+                // open once to avoid open failure before first append
+                File f = SD.open(logFileName, O_CREAT);
+                return f.close();
+            }
         }
         return false;
     }

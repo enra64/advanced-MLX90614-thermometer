@@ -25,7 +25,7 @@
 static const uint8_t CONT_SCAN_BITMAP[8] U8X8_PROGMEM = {0xdf, 0x91, 0x89, 0x85, 0xa1, 0x91, 0x89, 0xfb};
 static const uint8_t LASER_BITMAP[10] U8X8_PROGMEM = {0x10, 0x08, 0x10, 0x08, 0x10, 0x08, 0x3c, 0x18, 0x3c, 0x18};
 static const uint8_t BG_LIGHT_BITMAP[7] U8X8_PROGMEM = {0x55, 0x3e, 0x63, 0x22, 0x63, 0x3e, 0x55};
-static const uint8_t AVG_BITMAP[8] U8X8_PROGMEM = {0xbc, 0x42, 0xa1, 0x91, 0x89, 0x85, 0x42, 0x3d};
+static const uint8_t AVG_BITMAP[6] U8X8_PROGMEM = {0x58, 0x24, 0x52, 0x4a, 0x24, 0x1a};
 
 class Display {
 private: // constants
@@ -33,8 +33,8 @@ private: // constants
 
     static const uint8_t DISPLAY_WIDTH = 84, DISPLAY_HEIGHT = 48, DISPLAY_BOTTOM = DISPLAY_HEIGHT;
 
-    static const uint8_t LAST_MEASUREMENT_X = 0, LAST_MEASUREMENT_Y = DISPLAY_BOTTOM - BOTTOM_DIVIDER_HEIGHT / 4;
-    static const uint8_t AVG_MEASUREMENT_X = 28, AVG_MEASUREMENT_Y = DISPLAY_BOTTOM - BOTTOM_DIVIDER_HEIGHT / 4;
+    static const uint8_t LAST_MEASUREMENT_X = 0, LAST_MEASUREMENT_Y = DISPLAY_BOTTOM - BOTTOM_DIVIDER_HEIGHT / 4 - 1;
+    static const uint8_t AVG_MEASUREMENT_X = 28, AVG_MEASUREMENT_Y = DISPLAY_BOTTOM - BOTTOM_DIVIDER_HEIGHT / 4 - 1;
 
     static const uint8_t GRAPH_HEIGHT = 26;
 
@@ -52,7 +52,7 @@ private: // constants
     static const uint8_t
             GRAPH_X = GRAPH_LEGEND_X + LEFT_GRAPH_LEGEND_WIDTH,
             GRAPH_Y = GRAPH_HEIGHT,
-            GRAPH_WIDTH = 20,//DISPLAY_WIDTH - LEFT_GRAPH_LEGEND_WIDTH,
+            GRAPH_WIDTH = DISPLAY_WIDTH - LEFT_GRAPH_LEGEND_WIDTH,
             GRAPH_RIGHT = GRAPH_X + GRAPH_WIDTH,
             GRAPH_TOP = GRAPH_Y + GRAPH_HEIGHT;
 
@@ -60,12 +60,12 @@ private: // constants
             BITMAP_WIDTH = 8,
             BITMAP_CONT_SCAN_HEIGHT = 8,
             BITMAP_LASER_HEIGHT = 10,
-            BITMAP_AVG_HEIGHT = 8,
+            BITMAP_AVG_HEIGHT = 6,
             BITMAP_BG_LIGHT_HEIGHT = 7;
 
-    static const uint8_t CONT_SCAN_IND_X = 56, CONT_SCAN_IND_Y = DISPLAY_BOTTOM - BITMAP_CONT_SCAN_HEIGHT;
+    static const uint8_t CONT_SCAN_IND_X = 56, CONT_SCAN_IND_Y = DISPLAY_BOTTOM - BITMAP_CONT_SCAN_HEIGHT - 1;
     static const uint8_t LASER_IND_X = 63, LASER_IND_Y = DISPLAY_BOTTOM - BITMAP_LASER_HEIGHT;
-    static const uint8_t BG_IND_X = 70, BG_IND_Y = DISPLAY_BOTTOM - BITMAP_BG_LIGHT_HEIGHT;
+    static const uint8_t BG_IND_X = 70, BG_IND_Y = DISPLAY_BOTTOM - BITMAP_BG_LIGHT_HEIGHT - 1;
 
 private:
     DISPLAY_TYPE *display;
@@ -87,7 +87,7 @@ private:
             auto y = static_cast<uint8_t>(GRAPH_Y - (val - min) * verticalScale);
 
             // cant see that on the bottom line
-            if(y == 0) y++;
+            if(y == GRAPH_Y) y--;
 
             display->drawPixel(x, y);
         }
@@ -123,8 +123,14 @@ private:
 
         // draw full log duration on left
         display->setCursor(GRAPH_LEGEND_X + 15, GRAPH_LEGEND_Y);
+
+        // leading zero
+        if(logMinutes < 10) display->print("0");
         display->print(logMinutes);
         display->print(":");
+
+        // leading zero
+        if(logSeconds < 10) display->print("0");
         display->print(logSeconds);
 
         // draw "now" on the right
@@ -164,16 +170,25 @@ private:
 
     void renderLastMeasurement(float measurementValue) {
         display->setCursor(LAST_MEASUREMENT_X, LAST_MEASUREMENT_Y);
-        display->print(measurementValue);
+        if(static_cast<bool>(isnan(measurementValue)))
+            display->print("NaN");
+        else
+            display->print(measurementValue);
+
     }
 
     void renderAverageMeasurement(int32_t sum, size_t count) {
-        display->drawXBMP(AVG_MEASUREMENT_X - 1, AVG_MEASUREMENT_Y, BITMAP_WIDTH, BITMAP_AVG_HEIGHT, AVG_BITMAP);
+        // draw "average" symbol
+        display->drawXBMP(
+                AVG_MEASUREMENT_X - 1, AVG_MEASUREMENT_Y - BITMAP_AVG_HEIGHT + 1,
+                BITMAP_WIDTH, BITMAP_AVG_HEIGHT, AVG_BITMAP);
+
+        // draw nan or the average
         if (count > 0) {
-            display->setCursor(AVG_MEASUREMENT_X + 8, AVG_MEASUREMENT_Y - BITMAP_AVG_HEIGHT);
+            display->setCursor(AVG_MEASUREMENT_X + 8, AVG_MEASUREMENT_Y);
             display->print(sum / count);
         } else {
-            display->setCursor(AVG_MEASUREMENT_X, AVG_MEASUREMENT_Y);
+            display->setCursor(AVG_MEASUREMENT_X + 8, AVG_MEASUREMENT_Y);
             display->print("NaN");
         }
     }
@@ -243,8 +258,6 @@ public:
     Display() {
         display = new DISPLAY_TYPE(U8G2_R0, SPI_CS_DISPLAY, SPI_DC, SPI_RESET);
         display->begin();
-        display->enableUTF8Print();
-        //display->setFont(u8g2_font_7x14_tr);
         display->setFont(u8g2_font_micro_tr);
     }
 };
