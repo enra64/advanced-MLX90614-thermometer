@@ -49,8 +49,8 @@ public:
         pinMode(BACKGROUND_LIGHT_OUTPUT_PIN, OUTPUT);
         pinMode(LASER_OUTPUT_PIN, OUTPUT);
 
-        digitalWrite(BACKGROUND_LIGHT_OUTPUT_PIN, HIGH);
-        digitalWrite(LASER_OUTPUT_PIN, HIGH);
+        digitalWrite(BACKGROUND_LIGHT_OUTPUT_PIN, static_cast<uint8_t>(backgroundLightEnabled));
+        digitalWrite(LASER_OUTPUT_PIN, static_cast<uint8_t>(laserEnabled));
     }
 
     /// Update the input system and the continuous scanning manager. If necessary, update the display.
@@ -87,13 +87,13 @@ public:
     void onLaserToggled(bool activated) {
         laserEnabled = !laserEnabled;
         // enable the laser (transistor lets through on low, so activation should digitalWrite a LOW
-        digitalWrite(LASER_OUTPUT_PIN, static_cast<uint8_t>(!laserEnabled));
+        digitalWrite(LASER_OUTPUT_PIN, static_cast<uint8_t>(laserEnabled));
         dirty();
     }
 
     void onBackgroundLightToggled(bool activated) {
         backgroundLightEnabled = !backgroundLightEnabled;
-        digitalWrite(BACKGROUND_LIGHT_OUTPUT_PIN, static_cast<uint8_t>(!backgroundLightEnabled));
+        digitalWrite(BACKGROUND_LIGHT_OUTPUT_PIN, static_cast<uint8_t>(backgroundLightEnabled));
         dirty();
     }
 private:
