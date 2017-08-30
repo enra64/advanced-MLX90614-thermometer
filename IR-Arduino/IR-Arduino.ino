@@ -3,7 +3,8 @@
 #define TEST_DISPLAY 2
 #define TEST_LOGGER 3
 #define TEST_THERMOMETER_WRAPPER 4
-#define MODE 0
+#define TEST_MISC 5
+#define MODE 3
 
 
 #if MODE == RUN
@@ -107,6 +108,7 @@ void loop() {
 #include "Logger.hpp"
 
 void printBuffer(float *buffer, size_t length) {
+    Serial.println("printing buffer...");
     for (size_t i = 0; i < length; i++)
         Serial.println(buffer[i]);
     Serial.println("finished buffer printing");
@@ -120,37 +122,42 @@ void setup() {
 
     long time_logger = millis();
     Logger::append(1);
-    Logger::append(1);
-    Logger::append(1);
-    Logger::append(1);
+    Logger::append(30.21);
+    Logger::append(-15.499);
+    Logger::append(999.99);
     Serial.print("appending once took (ms): ");
     Serial.println(millis() - time_logger);
 
     //Logger::append(2.222);Logger::append(3.333);Logger::append(4.577);
 
-    Serial.print("retrieving last value: ");
+    bool success;
+
+    Serial.print(F("retrieving last value: "));
     float lastValue;
-    Logger::getLastEntry(lastValue);
-    Serial.println(lastValue);
+    success = Logger::getLastEntry(lastValue);
+    if(success)
+        Serial.println(lastValue);
+    else
+        Serial.println(F("could not retrieve last value"));
 
 
     float buffer[10];
-    bool success = true;
+    success = true;
 
     Serial.println("retrieving 2 log items:");
     for (size_t i = 0; i < 10; i++) buffer[i] = 0;
-    Logger::getLog(buffer, 2, success);
-    printBuffer(buffer, 10);
+    size_t retrieveCount = Logger::getLog(buffer, 2, success);
+    printBuffer(buffer, retrieveCount);
 
     Serial.println("retrieving exactly the full log:");
     for (size_t i = 0; i < 10; i++) buffer[i] = 0;
-    Logger::getLog(buffer, 4, success);
-    printBuffer(buffer, 10);
+    retrieveCount = Logger::getLog(buffer, 4, success);
+    printBuffer(buffer, retrieveCount);
 
     Serial.println("retrieving more than full log:");
     for (size_t i = 0; i < 10; i++) buffer[i] = 0;
-    Logger::getLog(buffer, 12, success);
-    printBuffer(buffer, 10);
+    retrieveCount = Logger::getLog(buffer, 12, success);
+    printBuffer(buffer, retrieveCount);
 }
 
 void loop() {
@@ -174,6 +181,24 @@ void loop() {
     delay(1000);
 }
 
+#elif MODE == TEST_MISC
+
+#include "ThermometerWrapper.h"
+
+void setup() {
+    Serial.begin(115200);
+}
+
+
+
+void loop() {
+    float test = 2;
+    for(int i = 1; i < 20; i++){
+        test *= i;
+        Serial.println(float2s(test, 2));
+    }
+    delay(2000);
+}
 #else
 #error "INVALID OPERATION MODE"
 #endif

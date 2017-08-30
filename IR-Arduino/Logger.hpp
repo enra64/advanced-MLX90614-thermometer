@@ -4,6 +4,7 @@
 #include <SdFat.h>
 
 #include "my_config.h"
+#include "FloatPrinter.h"
 
 namespace Logger {
     SdFat SD;
@@ -35,13 +36,18 @@ namespace Logger {
     /// \param [out] result csv result param
     /// \return
     bool readEntry(ifstream &sdin, float& result) {
-        if (sdin.fail() || sdin.eof()){
-            Serial.println("fail");
-            return false;
-        }
-        sdin >> result;
+        // if we reached the EOF before, but without reading over file boundaries, we should find out here
+        if(sdin.eof()) return false;
+
+        float tmpReadTarget;
+        sdin >> tmpReadTarget;
         sdin.ignore();
-        //Serial.print("read: ");Serial.println(result);
+
+        // check if we tried to read beyond file boundaries
+        if (sdin.fail())
+            return false;
+
+        result = tmpReadTarget;
         return true;
     }
 
@@ -61,7 +67,7 @@ namespace Logger {
         Serial.print("entry count is: ");Serial.println(entryCount);
 
         // reset the file state
-        //resetFile(sdin);
+        resetFile(sdin);
 
         return entryCount;
     }
@@ -89,13 +95,11 @@ namespace Logger {
         if (entryCount <= requestedPoints) {
             Serial.println(F("test"));
             size_t readEntries = 0;
+            float wat;
             while (readEntries < entryCount && success){
-                success &= readEntry(sdin, data[readEntries++]);
-                Serial.print(F("read entry "));
-                Serial.println(readEntries);
+                success &= readEntry(sdin, wat);
+                data[readEntries++] = wat;
             }
-
-            for (size_t i = 0; i < readEntries; i++)Serial.println(data[i]);Serial.println(F("finished buffer printing test"));
 
             sdin.close();
             return readEntries;
@@ -112,6 +116,7 @@ namespace Logger {
 
             // read entire chunk; may be extended size if no clean division is available
             size_t chunkSize = i < extendedChunkCount ? baseChunkSize + 1 : baseChunkSize;
+            Serial_printf("chunk size should be: ", chunkSize);
             for (size_t j = 0; j < chunkSize; j++) {
                 readEntry(sdin, valueBuffer);
                 runningMean = runningMean + ((valueBuffer - runningMean) / (j + 1));
@@ -136,29 +141,49 @@ namespace Logger {
             return false;
         }
 
-        // seek to the last value
-        sdin.seekg(sdin.end);
-        sdin.seekg(5, sdin.beg);
+        // seek to before the last comma
+        sdin.seekg(-2, sdin.end);
+
+        // search to find the position of the second-to-last comma
+        while(true) {
+            // break if at file start position
+            if(sdin.tellg() == 0)
+                break;
+
+            int currentChar = sdin.get();
+
+            // sd at end or no char available -> bad
+            if(currentChar == -1 || sdin.eof() || sdin.fail())
+                return false;
+
+            // found the comma!
+            if (currentChar == ',')
+                break;
+
+            // no comma, go backwards some more; have to go <<in front of>> the one before the one that was just read in
+            sdin.seekg(-2, sdin.cur);
+        }
 
         // read and return the last entry
         bool retVal = readEntry(sdin, lastValue);
-
         sdin.close();
-
         return retVal;
     }
 
-    void chooseLogFile() {
+    bool chooseLogFile() {
         for (uint16_t i = 0; i < UINT16_MAX; i++) {
             itoa(i, logFileName, 10);
             if (!SD.exists(logFileName))
-                break;
+                return true;
         }
+        return false;
     }
 
-    void init() {
-        SD.begin(SPI_CS_SD);
-        chooseLogFile();
+    bool init() {
+        bool success = true;
+        success &= SD.begin(SPI_CS_SD);
+        success &= chooseLogFile();
+        return success;
     }
 }
 
