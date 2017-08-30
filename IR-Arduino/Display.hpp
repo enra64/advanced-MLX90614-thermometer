@@ -25,6 +25,7 @@
 static const uint8_t CONT_SCAN_BITMAP[8] U8X8_PROGMEM = {0xdf, 0x91, 0x89, 0x85, 0xa1, 0x91, 0x89, 0xfb};
 static const uint8_t LASER_BITMAP[10] U8X8_PROGMEM = {0x10, 0x08, 0x10, 0x08, 0x10, 0x08, 0x3c, 0x18, 0x3c, 0x18};
 static const uint8_t BG_LIGHT_BITMAP[7] U8X8_PROGMEM = {0x55, 0x3e, 0x63, 0x22, 0x63, 0x3e, 0x55};
+static const uint8_t AVG_BITMAP[8] U8X8_PROGMEM = {0xbc, 0x42, 0xa1, 0x91, 0x89, 0x85, 0x42, 0x3d};
 
 class Display {
 private: // constants
@@ -51,7 +52,7 @@ private: // constants
     static const uint8_t
             GRAPH_X = GRAPH_LEGEND_X + LEFT_GRAPH_LEGEND_WIDTH,
             GRAPH_Y = GRAPH_HEIGHT,
-            GRAPH_WIDTH = DISPLAY_WIDTH - LEFT_GRAPH_LEGEND_WIDTH,
+            GRAPH_WIDTH = 20,//DISPLAY_WIDTH - LEFT_GRAPH_LEGEND_WIDTH,
             GRAPH_RIGHT = GRAPH_X + GRAPH_WIDTH,
             GRAPH_TOP = GRAPH_Y + GRAPH_HEIGHT;
 
@@ -59,6 +60,7 @@ private: // constants
             BITMAP_WIDTH = 8,
             BITMAP_CONT_SCAN_HEIGHT = 8,
             BITMAP_LASER_HEIGHT = 10,
+            BITMAP_AVG_HEIGHT = 8,
             BITMAP_BG_LIGHT_HEIGHT = 7;
 
     static const uint8_t CONT_SCAN_IND_X = 56, CONT_SCAN_IND_Y = DISPLAY_BOTTOM - BITMAP_CONT_SCAN_HEIGHT;
@@ -75,15 +77,18 @@ private:
         display->drawVLine(CONT_SCAN_IND_X - 2, dividerTop, BOTTOM_DIVIDER_HEIGHT);
     }
 
-    void renderGraph(const float *input, size_t count, float min, float max) {
+    void renderGraph(const int16_t* input, size_t count, int16_t min, int16_t max) {
         // calculate vertical scale
-        float verticalScale = GRAPH_HEIGHT / (max - min);
+        auto verticalScale = static_cast<float>(GRAPH_HEIGHT) / (max - min);
 
         for (size_t i = 0; i < count; i++) {
-            float val = input[count - 1 - i];
-            uint8_t x = static_cast<uint8_t >(GRAPH_RIGHT - i - 1);
-            uint8_t y = static_cast<uint8_t>(GRAPH_Y - (val - min) * verticalScale);
-            //Serial.print("drawing pixel at ");Serial.print(x);Serial.print(",");Serial.println(y);
+            int16_t val = input[count - 1 - i];
+            auto x = static_cast<uint8_t >(GRAPH_RIGHT - i - 1);
+            auto y = static_cast<uint8_t>(GRAPH_Y - (val - min) * verticalScale);
+
+            // cant see that on the bottom line
+            if(y == 0) y++;
+
             display->drawPixel(x, y);
         }
     }
@@ -162,26 +167,29 @@ private:
         display->print(measurementValue);
     }
 
-    void renderAverageMeasurement(float sum, size_t count) {
-        display->setCursor(AVG_MEASUREMENT_X, AVG_MEASUREMENT_Y);
+    void renderAverageMeasurement(int32_t sum, size_t count) {
+        display->drawXBMP(AVG_MEASUREMENT_X - 1, AVG_MEASUREMENT_Y, BITMAP_WIDTH, BITMAP_AVG_HEIGHT, AVG_BITMAP);
         if (count > 0) {
-            display->print("Ø");
+            display->setCursor(AVG_MEASUREMENT_X + 8, AVG_MEASUREMENT_Y - BITMAP_AVG_HEIGHT);
             display->print(sum / count);
         } else {
+            display->setCursor(AVG_MEASUREMENT_X, AVG_MEASUREMENT_Y);
             display->print("NaN");
         }
     }
 
 public:
     void update(
-            const float *input,
+            const int16_t* input,
             size_t count,
+            float lastValue,
             bool continuousScanEnabled,
             bool backgroundLightEnabled,
             bool laserEnabled) {
 
         // calculate the average once
-        float sum = 0, max = -FLT_MAX, min = FLT_MAX;
+        int32_t sum = 0;
+        int16_t max = INT16_MIN, min = INT16_MAX;
         for (size_t i = 0; i < count; i++) {
             max = max >= input[i] ? max : input[i];
             min = min <= input[i] ? min : input[i];
@@ -192,23 +200,25 @@ public:
         display->setPowerSave(static_cast<uint8_t>(false));
         display->firstPage();
         do {
+            if(count > 0) {
 #ifndef TESTING_DISABLE_HORIZONTAL_MARKING
-            renderXMarks(count);
+                renderXMarks(count);
 #endif
 #ifndef TESTING_DISABLE_VERTICAL_MARKING
-            renderYMarks(min, max);
+                renderYMarks(min, max);
 #endif
 #ifndef TESTING_DISABLE_FRAME
-            renderFrame();
+                renderFrame();
 #endif
 #ifndef TESTING_DISABLE_GRAPH
-            renderGraph(input, count, min, max);
+                renderGraph(input, count, min, max);
 #endif
+            }
 #ifndef TESTING_DISABLE_AVG_MEASUREMENT
             renderAverageMeasurement(sum, count);
 #endif
 #ifndef TESTING_DISABLE_LAST_MEASUREMENT
-            renderLastMeasurement(input[count - 1]);
+            renderLastMeasurement(lastValue);
 #endif
 #ifndef TESTING_DISABLE_LASER_INDICATOR
             renderLaserIndicator(laserEnabled);

@@ -24,6 +24,7 @@ void setup() {
     );
 
     thermometerLogic = new AdvancedThermometerLogic();
+    Serial.println("RUN init finished");
 }
 
 // listeners because std::bind is too fat for AVRs

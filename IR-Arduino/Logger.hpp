@@ -51,6 +51,15 @@ namespace Logger {
         return true;
     }
 
+    bool readEntry(ifstream& sdin, int16_t& result){
+        static float buffer;
+        if(!readEntry(sdin, buffer))
+            return false;
+
+        result = static_cast<int16_t>(buffer);
+        return true;
+    }
+
     void resetFile(ifstream &sdin) {
         sdin.clear();
         sdin.seekg(0, sdin.beg);
@@ -73,31 +82,30 @@ namespace Logger {
     /// GetLog returns log data from the sd card. It will subsample the points if more than "requestedPoints" are in the log.
     /// This function assumes that there is only a very small amount of ram available, and is thus very sequential.
     ///
+    /// \param data pointer to an array of int32_t's with a minimum length of "requestedPoints"
     /// \param requestedPoints amount of points that should be returned
-    /// \param data pointer to an array of floats with a minimum length of "requestedPoints"
-    /// \param [out] success whether a failure was found
-    /// \return number of points that were found
-    size_t getLog(float *data, size_t requestedPoints, bool &success) {
+    /// \param retrievedPoints [out] number of points that were found
+    /// \return success true if no failure was detected
+    bool getLog(int16_t *data, size_t requestedPoints, size_t& retrievedPoints) {
         ifstream sdin(logFileName);
-        success = true;
 
         if (!sdin.is_open()){
-            success = false;
+            retrievedPoints = 0;
             Serial.println(F("LOG_NO_OPEN getLog"));
-            return 0;
+            return false;
         }
 
         size_t entryCount = countEntries(sdin);
 
-        // iterate over all available points
+        // iterate over all available points if they all fit into the buffer
+        bool success = true;
+        retrievedPoints = 0;
         if (entryCount <= requestedPoints) {
-            size_t readEntries = 0;
-
-            while (readEntries < entryCount && success)
-                success &= readEntry(sdin, data[readEntries++]);
+            while (retrievedPoints < entryCount && success)
+                success &= readEntry(sdin, data[retrievedPoints++]);
 
             sdin.close();
-            return readEntries;
+            return true;
         }
 
         // subsample as follows: read a chunk of at most MAX_CHUNK_SIZE values, store average in data array, read next chunk
@@ -106,23 +114,24 @@ namespace Logger {
         size_t extendedChunkCount = entryCount % baseChunkSize;
         float valueBuffer = -1;
 
-        for (size_t i = 0; i < requestedPoints; i++) {
+        for (retrievedPoints = 0; retrievedPoints < requestedPoints; retrievedPoints++) {
             float runningMean = 0;
 
             // read entire chunk; may be extended size if no clean division is available
-            size_t chunkSize = i < extendedChunkCount ? baseChunkSize + 1 : baseChunkSize;
-            Serial_printf("chunk size should be: ", chunkSize);
+            size_t chunkSize = retrievedPoints < extendedChunkCount ? baseChunkSize + 1 : baseChunkSize;
+            //Serial_printf("chunk size should be: ", chunkSize);
             for (size_t j = 0; j < chunkSize; j++) {
                 readEntry(sdin, valueBuffer);
                 runningMean = runningMean + ((valueBuffer - runningMean) / (j + 1));
             }
 
-            //Serial.print("running mean ");Serial.print(i);Serial.print(" is ");Serial.println(runningMean);
-            data[i] = runningMean;
+            data[retrievedPoints] = static_cast<int32_t>(round(runningMean));
         }
 
+
+
         sdin.close();
-        return requestedPoints;
+        return true;
     }
 
     /// Get the value of the last entry.

@@ -6,13 +6,15 @@
 
 class Thermometer {
     Adafruit_MLX90614* tempSensor;
-
+    bool initSuccess;
 public:
     Thermometer() {
         // use tempSensor as a pointer to cease clions whinings
         tempSensor = new Adafruit_MLX90614();
-        tempSensor->begin();
+        initSuccess = tempSensor->begin();
     }
+
+    bool initializationSuccessful(){ return initSuccess; }
 
     float getTemperature() {
         // readObjectAmbient? see adafruit...

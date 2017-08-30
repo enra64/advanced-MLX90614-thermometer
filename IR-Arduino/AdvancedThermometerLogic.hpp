@@ -23,20 +23,27 @@ private:
     bool displayIsDirty, laserEnabled, backgroundLightEnabled;
 #pragma clang diagnostic pop
 
-    float* logBuffer;
+    int16_t* logBuffer;
     size_t logLength;
 public:
-    AdvancedThermometerLogic() : displayIsDirty(false), laserEnabled(false), backgroundLightEnabled(false) {
-        // initialize main classes
+    AdvancedThermometerLogic() : displayIsDirty(true), laserEnabled(false), backgroundLightEnabled(false) {
+        // the mcu CS high implies we are master
         digitalWrite(SPI_CS_ATMEGA328, HIGH);
-        Logger::init();
+
+        // initialize main classes
+        bool logOk = Logger::init();
+        if(!logOk) Serial.println(F("ERROR: could not init SD lib"));
+
         display = new Display();
         thermometer = new Thermometer();
+        bool thermoOk = thermometer->initializationSuccessful();
+        if(!thermoOk) Serial.println(F("ERROR: could not init thermometer"));
+
         scanManager = new ContinuousLoggingManager(thermometer);
 
         // create log buffer on heap
         logLength = display->getGraphHorizontalResolution();
-        logBuffer = new float[logLength];
+        logBuffer = new int16_t[logLength];
 
         // initialize the output pins for laser and background light control
         pinMode(BACKGROUND_LIGHT_OUTPUT_PIN, OUTPUT);
@@ -51,15 +58,14 @@ public:
         displayIsDirty |= scanManager->update();
 
         if(displayIsDirty){
+            size_t retrievedLogItems;
+            bool success = Logger::getLog(logBuffer, logLength, retrievedLogItems);
+
+            float lastEntry = NAN;
+            success &= Logger::getLastEntry(lastEntry);
+
+            display->update(logBuffer, retrievedLogItems, lastEntry, scanManager->isEnabled(), backgroundLightEnabled, laserEnabled);
             displayIsDirty = false;
-            bool success = false;
-            size_t retrievedLogItems = Logger::getLog(logBuffer, logLength, success);
-
-            for (size_t i = 0; i < retrievedLogItems; i++)
-                Serial.println(logBuffer[i]);
-            Serial.println("finished buffer printing");
-
-            display->update(logBuffer, retrievedLogItems, scanManager->isEnabled(), backgroundLightEnabled, laserEnabled);
         }
     }
 
