@@ -4,7 +4,7 @@
 #define TEST_LOGGER 3
 #define TEST_THERMOMETER_WRAPPER 4
 #define TEST_MISC 5
-#define MODE 3
+#define MODE 0
 
 
 #if MODE == RUN
@@ -144,9 +144,19 @@ void setup() {
     float buffer[10];
     success = true;
 
+    Serial.println("retrieving single log item:");
+    for (size_t i = 0; i < 10; i++) buffer[i] = 0;
+    size_t retrieveCount = Logger::getLog(buffer, 1, success);
+    printBuffer(buffer, retrieveCount);
+
     Serial.println("retrieving 2 log items:");
     for (size_t i = 0; i < 10; i++) buffer[i] = 0;
-    size_t retrieveCount = Logger::getLog(buffer, 2, success);
+    retrieveCount = Logger::getLog(buffer, 2, success);
+    printBuffer(buffer, retrieveCount);
+
+    Serial.println("retrieving 3 log items:");
+    for (size_t i = 0; i < 10; i++) buffer[i] = 0;
+    retrieveCount = Logger::getLog(buffer, 3, success);
     printBuffer(buffer, retrieveCount);
 
     Serial.println("retrieving exactly the full log:");

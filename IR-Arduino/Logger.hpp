@@ -64,8 +64,6 @@ namespace Logger {
         size_t entryCount = 0;
         while (readEntry(sdin, value)) entryCount++;
 
-        Serial.print("entry count is: ");Serial.println(entryCount);
-
         // reset the file state
         resetFile(sdin);
 
@@ -93,13 +91,10 @@ namespace Logger {
 
         // iterate over all available points
         if (entryCount <= requestedPoints) {
-            Serial.println(F("test"));
             size_t readEntries = 0;
-            float wat;
-            while (readEntries < entryCount && success){
-                success &= readEntry(sdin, wat);
-                data[readEntries++] = wat;
-            }
+
+            while (readEntries < entryCount && success)
+                success &= readEntry(sdin, data[readEntries++]);
 
             sdin.close();
             return readEntries;
