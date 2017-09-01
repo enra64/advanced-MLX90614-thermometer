@@ -80,8 +80,8 @@ void loop() {
 #include "Display.hpp"
 
 Display* display;
-float example_data[] = {0, 1, 2, 3, 4, 501, 6, 7, 8, 9, 999};
-float* example_data_full_res;
+int16_t example_data[] = {0, 1, 2, 3, 4, 501, 6, 7, 8, 9, 999};
+int16_t* example_data_full_res;
 
 void setup(){
     display = new Display();
@@ -90,7 +90,7 @@ void setup(){
     Serial.print("graph horizontal resolution: ");
     Serial.println(display->getGraphHorizontalResolution());
 
-    example_data_full_res = new float[display->getGraphHorizontalResolution()];
+    example_data_full_res = new int16_t[display->getGraphHorizontalResolution()];
     for(size_t i = 0; i < display->getGraphHorizontalResolution(); i++){
         example_data_full_res[i] = i * i;
     }
@@ -98,10 +98,10 @@ void setup(){
 
 void loop() {
     Serial.println("display indicators");
-    display->update(example_data, 11, true, true, true);
+    display->update(example_data, 11, 54, true, true, true);
     delay(1000);
     Serial.println("hide indicators");
-    display->update(example_data, 11, false, false, false);
+    display->update(example_data, 11, 45, false, false, false);
     delay(1000);
 }
 #elif MODE == TEST_LOGGER
